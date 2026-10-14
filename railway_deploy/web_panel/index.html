@@ -304,31 +304,29 @@
                             <div class="chat-header">
                                 <div class="chat-header-info">
                                     <i class="fa-solid fa-hashtag text-cyan"></i>
-                                    <span class="active-channel-name" id="current-chat-ch-name">general</span>
-                                    <span class="active-channel-topic" id="current-chat-ch-topic">Canal principal de charla</span>
+                                    <span class="active-channel-name" id="current-chat-ch-name">🌐・todos-los-canales</span>
+                                    <span class="active-channel-topic" id="current-chat-ch-topic">Feed global en vivo con colores por usuario y fotos</span>
                                 </div>
                                 <div class="chat-header-actions">
-                                    <button class="btn-icon" title="Limpiar Chat" id="btn-clear-chat-view"><i class="fa-solid fa-broom"></i></button>
+                                    <button class="btn-icon" title="Refrescar Chat" id="btn-refresh-chat-view"><i class="fa-solid fa-arrows-rotate"></i></button>
+                                    <button class="btn-icon" title="Limpiar Historial de Chat" id="btn-clear-chat-view"><i class="fa-solid fa-broom"></i></button>
                                 </div>
                             </div>
 
                             <div class="chat-messages" id="chat-messages-container">
-                                <!-- Messages load here -->
+                                <!-- Messages load here dynamically with custom user colors and images -->
                             </div>
 
                             <div class="chat-composer">
                                 <div class="composer-toolbar">
                                     <div class="color-picker-group">
-                                        <label><i class="fa-solid fa-palette"></i> Color:</label>
-                                        <select id="chat-color-select" class="custom-select">
-                                            <option value="default">Normal (Blanco)</option>
-                                            <option value="cyan">Cian Eléctrico (ANSI)</option>
-                                            <option value="green">Verde Neón (ANSI)</option>
-                                            <option value="yellow">Amarillo Dorado (ANSI)</option>
-                                            <option value="red">Rojo Sangre (ANSI)</option>
-                                            <option value="magenta">Magenta Cyber (ANSI)</option>
-                                            <option value="blue">Azul Discord (ANSI)</option>
-                                            <option value="rgb">Arcoíris RGB Animado</option>
+                                        <label><i class="fa-solid fa-palette"></i> Canal Destino:</label>
+                                        <select id="chat-target-channel-select" class="custom-select">
+                                            <option value="general"># general</option>
+                                            <option value="🤖・game-bots"># 🤖・game-bots</option>
+                                            <option value="🚨・send-reports"># 🚨・send-reports</option>
+                                            <option value="🎨・stickers-9999-hd"># 🎨・stickers-9999-hd</option>
+                                            <option value="🔊・soundboard-500-freefire"># 🔊・soundboard-500-freefire</option>
                                         </select>
                                     </div>
                                     <div class="toolbar-shortcuts">
@@ -338,8 +336,16 @@
                                         <button class="btn-chip" id="btn-chip-zelika">⚡ Zelika</button>
                                     </div>
                                 </div>
+                                <div class="composer-attachment-bar" id="composer-attachment-bar" style="display:none; padding: 6px 12px; background: rgba(0,0,0,0.3); border-radius: 8px; margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
+                                    <i class="fa-solid fa-image text-cyan"></i>
+                                    <input type="text" id="chat-input-image" placeholder="URL directa de la foto o imagen (ej: https://.../foto.png)" style="flex:1; background:transparent; border:none; color:#fff; font-size:12px; outline:none;">
+                                    <button type="button" id="btn-clear-img-url" style="background:transparent; border:none; color:#888; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+                                </div>
                                 <div class="composer-input-row">
-                                    <input type="text" id="chat-input-text" placeholder="Escribe un mensaje para enviar a Discord como Bot..." autocomplete="off">
+                                    <button type="button" id="btn-toggle-attach" class="btn-icon-sub" title="Adjuntar Foto o Imagen">
+                                        <i class="fa-solid fa-paperclip"></i>
+                                    </button>
+                                    <input type="text" id="chat-input-text" placeholder="Escribe un mensaje en vivo para el servidor de Discord..." autocomplete="off">
                                     <button id="btn-send-chat-msg" class="btn-send-primary">
                                         <span>Enviar</span>
                                         <i class="fa-solid fa-paper-plane"></i>
@@ -482,7 +488,15 @@
                                     <span class="th-code" id="gb-squad-code">CÓDIGO: #FF-89210</span>
                                 </div>
                                 <div class="squad-members-list" id="gb-squad-members">
-                                    <!-- Rendered dynamically -->
+                                    <!-- Rendered dynamically with 100% random bots, levels and ranks -->
+                                </div>
+                                <div class="squad-actions-row" style="display:flex; gap:10px; margin-top:14px; flex-wrap:wrap;">
+                                    <button class="btn-action-small" id="btn-regen-squad" style="flex:1; padding:10px 14px; background:linear-gradient(135deg, #FF6600, #FF9900); border:none; border-radius:8px; color:#fff; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;">
+                                        <i class="fa-solid fa-dice"></i> Generar Otra Escuadra Aleatoria
+                                    </button>
+                                    <button class="btn-action-small" id="btn-view-all-55-bots" style="flex:1; padding:10px 14px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); border-radius:8px; color:#fff; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;">
+                                        <i class="fa-solid fa-users"></i> Ver Roster de 55 Bots
+                                    </button>
                                 </div>
                                 <div class="squad-footer-note">
                                     <p>✅ Los bots ingresarán a tu sala automáticamente y te cederán todas las kills en la partida.</p>
@@ -843,6 +857,36 @@
             <div class="modal-body" id="modal-m-body">
                 <!-- Injected by JS -->
             </div>
+        </div>
+    </div>
+
+    <!-- MODAL PARA ROSTER DE 55 BOTS -->
+    <div class="modal-backdrop" id="bots-55-modal">
+        <div class="modal-card" style="width: 720px; max-width: 95vw;">
+            <div class="modal-head">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <i class="fa-solid fa-robot text-orange"></i>
+                    <h3 id="modal-bots-title">Roster Oficial de 55 Cuentas Bots Free Fire</h3>
+                </div>
+                <button class="btn-close-modal" id="btn-close-bots-modal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body" style="max-height: 65vh; overflow-y: auto;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; font-size:13px; color:#888;">
+                    <span>🟢 55/55 Cuentas Bots Disponibles • Sincronizadas 24/7</span>
+                    <span>👑 Creado por rafamodzyt</span>
+                </div>
+                <div class="bots-grid" id="modal-bots-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;">
+                    <!-- Injected dynamically by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PARA ZOOM DE FOTOS DE CHAT -->
+    <div class="modal-backdrop" id="image-zoom-modal">
+        <div style="position:relative; max-width:90vw; max-height:90vh; display:flex; align-items:center; justify-content:center;">
+            <button class="btn-close-modal" id="btn-close-image-modal" style="position:absolute; top:-36px; right:0; font-size:24px; color:#fff;"><i class="fa-solid fa-xmark"></i></button>
+            <img src="" id="image-zoom-img" style="max-width:90vw; max-height:85vh; border-radius:12px; border:1px solid rgba(255,255,255,0.2); box-shadow:0 10px 40px rgba(0,0,0,0.8);" alt="Foto en grande">
         </div>
     </div>
 

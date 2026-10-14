@@ -367,6 +367,57 @@ class AdminBot(commands.Bot):
         if not self.hourly_wallpaper_task.is_running():
             self.hourly_wallpaper_task.start()
 
+    def record_chat_message(self, message: discord.Message):
+        """Registra los mensajes y fotos enviados en Discord para el Panel Web."""
+        try:
+            filepath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "chat_logs.json")
+            os.makedirs(os.path.dirname(filepath), exist_ok=True)
+            logs = []
+            if os.path.exists(filepath):
+                try:
+                    with open(filepath, "r", encoding="utf-8") as f:
+                        logs = json.load(f)
+                except Exception:
+                    logs = []
+
+            # Extraer adjuntos / fotos
+            attachments = []
+            for att in message.attachments:
+                attachments.append(att.url)
+
+            author_name = message.author.display_name or message.author.name
+            ch_name = getattr(message.channel, 'name', 'general')
+
+            item = {
+                "id": str(message.id),
+                "author": author_name,
+                "author_id": str(message.author.id),
+                "bot": message.author.bot,
+                "avatar": str(message.author.display_avatar.url),
+                "channel_name": ch_name,
+                "channel_id": str(message.channel.id),
+                "content": message.content,
+                "attachments": attachments,
+                "timestamp": datetime.datetime.now().strftime("%H:%M:%S"),
+                "date": datetime.datetime.now().strftime("%Y-%m-%d")
+            }
+
+            logs.append(item)
+            if len(logs) > 300:
+                logs = logs[-300:]
+
+            with open(filepath, "w", encoding="utf-8") as f:
+                json.dump(logs, f, indent=2, ensure_ascii=False)
+        except Exception as e:
+            print(f"[Error record_chat_message] {e}", flush=True)
+
+    async def on_message(self, message: discord.Message):
+        """Monitorea todos los mensajes y fotos de Discord y los guarda para el Panel Web."""
+        if message.guild and message.guild.id == config.GUILD_ID:
+            self.record_chat_message(message)
+
+        await self.process_commands(message)
+
     async def on_member_join(self, member: discord.Member):
         """Envía el mensaje de bienvenida cuando un usuario entra al servidor."""
         self.record_member_event("JOIN", member, "Entró al servidor")

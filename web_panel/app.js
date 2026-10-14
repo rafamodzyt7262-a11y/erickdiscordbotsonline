@@ -145,9 +145,10 @@ function initVoiceEqualizer() {
 }
 
 /* =========================================================
-   4. CHAT EN VIVO Y CANALES
+   4. CHAT EN VIVO, COLORES POR USUARIO Y FOTOS
    ========================================================= */
 const CHANNELS_DATA = [
+    { id: "all", name: "🌐・todos-los-canales", topic: "Feed unificado de todos los canales de SHADOW BLOCK" },
     { id: "1350706770527653992", name: "general", topic: "Charla general de la comunidad" },
     { id: "1559854210080575518", name: "🤖・game-bots", topic: "Emparejamiento de cuentas bots Free Fire" },
     { id: "1559854214493245480", name: "🚨・send-reports", topic: "55 reportes y blacklist en 12s" },
@@ -159,11 +160,36 @@ const CHANNELS_DATA = [
     { id: "1559826233620168734", name: "😀botericklogs", topic: "Consola de control de bots" }
 ];
 
-const INITIAL_MESSAGES = [
-    { author: "SatanasMiPadre", bot: true, avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop", text: "🛡️ Bot Administrador conectado 24/7 a SHADOW BLOCK. Creado por rafamodzyt.", color: "cyan", time: "Hoy a las 04:00" },
-    { author: "Erick X", bot: true, avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=200&auto=format&fit=crop", text: "🎙️ Voz 24/7 activa en General. Meta hacia 1,000,000 de horas en curso.", color: "green", time: "Hoy a las 04:02" },
-    { author: "rafamodzyt", bot: false, avatar: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=200&auto=format&fit=crop", text: "¡El nuevo panel web y de C++ ya están disponibles para todos los miembros!", color: "default", time: "Hoy a las 04:05" }
+const USER_COLOR_PALETTE = [
+    '#00F0FF', // Cian Eléctrico
+    '#FF0055', // Rosa Neón
+    '#00FF66', // Verde Lima
+    '#FFE600', // Amarillo Oro
+    '#9B59B6', // Púrpura Real
+    '#FF7700', // Naranja Fuego
+    '#3B82F6', // Azul Eléctrico
+    '#EC4899', // Fucsia Intenso
+    '#10B981', // Esmeralda Cyber
+    '#A855F7', // Violeta
+    '#F43F5E', // Rubí
+    '#06B6D4', // Turquesa
+    '#F97316', // Mandarina
+    '#84CC16', // Lima Intenso
+    '#EAB308', // Ámbar
+    '#6366F1'  // Índigo
 ];
+
+function getUsernameColor(username, userId = '') {
+    const key = (userId || username || 'anon').toLowerCase();
+    let hash = 0;
+    for (let i = 0; i < key.length; i++) {
+        hash = key.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return USER_COLOR_PALETTE[Math.abs(hash) % USER_COLOR_PALETTE.length];
+}
+
+let activeChannelFilter = "all";
+let chatPollTimer = null;
 
 function initChatSystem() {
     const listEl = document.getElementById('chat-channels-list');
@@ -171,66 +197,212 @@ function initChatSystem() {
     const curNameEl = document.getElementById('current-chat-ch-name');
     const curTopicEl = document.getElementById('current-chat-ch-topic');
     const inputEl = document.getElementById('chat-input-text');
+    const inputImgEl = document.getElementById('chat-input-image');
     const btnSend = document.getElementById('btn-send-chat-msg');
-    const colorSelect = document.getElementById('chat-color-select');
+    const btnToggleAttach = document.getElementById('btn-toggle-attach');
+    const attachBar = document.getElementById('composer-attachment-bar');
+    const btnClearImg = document.getElementById('btn-clear-img-url');
+    const btnRefresh = document.getElementById('btn-refresh-chat-view');
+    const btnClear = document.getElementById('btn-clear-chat-view');
+    const targetChannelSelect = document.getElementById('chat-target-channel-select');
 
     if (!listEl || !msgsEl) return;
+
+    // Toggle attachment bar
+    if (btnToggleAttach && attachBar) {
+        btnToggleAttach.addEventListener('click', () => {
+            const isHidden = attachBar.style.display === 'none';
+            attachBar.style.display = isHidden ? 'flex' : 'none';
+            if (isHidden && inputImgEl) inputImgEl.focus();
+        });
+    }
+
+    if (btnClearImg && inputImgEl) {
+        btnClearImg.addEventListener('click', () => {
+            inputImgEl.value = '';
+            if (attachBar) attachBar.style.display = 'none';
+        });
+    }
 
     // Render channels list
     listEl.innerHTML = '';
     CHANNELS_DATA.forEach((ch, idx) => {
         const btn = document.createElement('button');
         btn.className = `channel-btn ${idx === 0 ? 'active' : ''}`;
-        btn.innerHTML = `<i class="fa-solid fa-hashtag"></i> <span>${ch.name}</span>`;
+        btn.innerHTML = ch.id === 'all' 
+            ? `<i class="fa-solid fa-globe text-cyan"></i> <span>${ch.name}</span> <span class="nav-tag tag-cyan" style="font-size:9px; padding:1px 5px; margin-left:auto;">ALL</span>`
+            : `<i class="fa-solid fa-hashtag"></i> <span>${ch.name}</span>`;
         btn.addEventListener('click', () => {
             document.querySelectorAll('.channel-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
+            activeChannelFilter = ch.id;
             curNameEl.textContent = ch.name;
             curTopicEl.textContent = ch.topic;
+            renderChatMessages();
         });
         listEl.appendChild(btn);
     });
 
-    // Render initial messages
-    msgsEl.innerHTML = '';
-    INITIAL_MESSAGES.forEach(m => appendMessage(m));
+    // Cargar mensajes desde localStorage o servidor
+    let localCache = [];
+    try {
+        const stored = localStorage.getItem('shadow_chat_cache');
+        if (stored) localCache = JSON.parse(stored);
+    } catch(e) {}
 
-    function appendMessage(m) {
-        const msgDiv = document.createElement('div');
-        msgDiv.className = 'msg-item';
-        msgDiv.innerHTML = `
-            <img src="${m.avatar}" class="msg-avatar" alt="${m.author}">
-            <div class="msg-content-wrapper">
-                <div class="msg-author-row">
-                    <span class="msg-author-name">${m.author}</span>
-                    ${m.bot ? '<span class="msg-bot-tag">BOT</span>' : ''}
-                    <span class="msg-timestamp">${m.time}</span>
+    window._chatMessages = Array.isArray(localCache) && localCache.length ? localCache : [];
+    renderChatMessages();
+
+    // Polling periódico a la API /api/chat
+    async function fetchServerChat() {
+        try {
+            const res = await fetch('/api/chat', { cache: 'no-store' });
+            if (res.ok) {
+                const data = await res.json();
+                if (Array.isArray(data) && data.length) {
+                    window._chatMessages = data;
+                    localStorage.setItem('shadow_chat_cache', JSON.stringify(data));
+                    renderChatMessages();
+                }
+            }
+        } catch (e) {
+            // Modo local sin servidor
+        }
+    }
+
+    fetchServerChat();
+    if (chatPollTimer) clearInterval(chatPollTimer);
+    chatPollTimer = setInterval(fetchServerChat, 2500);
+
+    if (btnRefresh) {
+        btnRefresh.addEventListener('click', () => {
+            fetchServerChat();
+            playTone(440, 0.1);
+        });
+    }
+
+    if (btnClear) {
+        btnClear.addEventListener('click', async () => {
+            if (confirm('¿Deseas vaciar la vista y el registro del chat?')) {
+                window._chatMessages = [];
+                localStorage.removeItem('shadow_chat_cache');
+                renderChatMessages();
+                try {
+                    await fetch('/api/chat/clear', { method: 'POST' });
+                } catch(e) {}
+            }
+        });
+    }
+
+    function renderChatMessages() {
+        if (!msgsEl) return;
+        msgsEl.innerHTML = '';
+
+        const filtered = (window._chatMessages || []).filter(m => {
+            if (activeChannelFilter === 'all') return true;
+            return m.channel_id === activeChannelFilter || m.channel_name === activeChannelFilter;
+        });
+
+        if (filtered.length === 0) {
+            msgsEl.innerHTML = `
+                <div class="empty-chat-state" style="text-align:center; padding:40px 20px; color:#666;">
+                    <i class="fa-solid fa-comments" style="font-size:32px; margin-bottom:10px; opacity:0.5;"></i>
+                    <p>No hay mensajes registrados en este canal aún.</p>
+                    <small>Escribe abajo o envía un mensaje en Discord para verlo en vivo.</small>
                 </div>
-                <div class="msg-bubble color-${m.color}">${m.text}</div>
-            </div>
-        `;
-        msgsEl.appendChild(msgDiv);
+            `;
+            return;
+        }
+
+        filtered.forEach(m => {
+            const userColor = getUsernameColor(m.author, m.author_id);
+            const timeStr = m.timestamp || (m.time || 'Ahora');
+            const avatarUrl = m.avatar || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=200&auto=format&fit=crop";
+
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'msg-item';
+
+            let attachmentsHtml = '';
+            if (Array.isArray(m.attachments) && m.attachments.length) {
+                m.attachments.forEach(url => {
+                    if (url) {
+                        attachmentsHtml += `
+                            <div class="msg-attachment-wrap" style="margin-top:8px;">
+                                <img src="${url}" class="msg-attachment-img" alt="Foto adjunta" loading="lazy" style="max-width:320px; max-height:240px; border-radius:10px; border:1px solid rgba(255,255,255,0.15); cursor:pointer; transition:transform 0.2s;" onclick="zoomImage('${url}')">
+                            </div>
+                        `;
+                    }
+                });
+            }
+
+            msgDiv.innerHTML = `
+                <img src="${avatarUrl}" class="msg-avatar" alt="${m.author}" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                <div class="msg-content-wrapper">
+                    <div class="msg-author-row">
+                        <span class="msg-author-name" style="color: ${userColor}; font-weight: 700; text-shadow: 0 0 10px ${userColor}40;">
+                            ${m.author}
+                        </span>
+                        ${m.bot ? '<span class="msg-bot-tag">BOT</span>' : ''}
+                        <span class="msg-ch-tag" style="font-size:10px; padding:2px 6px; border-radius:4px; background:rgba(255,255,255,0.06); color:#aaa; margin-left:6px;">
+                            #${m.channel_name || 'general'}
+                        </span>
+                        <span class="msg-timestamp" style="margin-left:auto; font-size:11px; color:#777;">${timeStr}</span>
+                    </div>
+                    ${m.content ? `<div class="msg-bubble">${escapeHtml(m.content)}</div>` : ''}
+                    ${attachmentsHtml}
+                </div>
+            `;
+            msgsEl.appendChild(msgDiv);
+        });
+
         msgsEl.scrollTop = msgsEl.scrollHeight;
     }
 
-    function sendCurrent() {
+    async function sendCurrent() {
         const text = inputEl.value.trim();
-        if (!text) return;
+        const imgUrl = inputImgEl ? inputImgEl.value.trim() : '';
 
-        const color = colorSelect.value;
+        if (!text && !imgUrl) return;
+
+        const targetCh = targetChannelSelect ? targetChannelSelect.value : 'general';
         const now = new Date();
-        const timeStr = `Hoy a las ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
 
-        appendMessage({
+        const newMsg = {
+            id: `msg_${Date.now()}`,
             author: "rafamodzyt (Panel Web)",
+            author_id: "panel_owner",
             bot: true,
             avatar: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=200&auto=format&fit=crop",
-            text: text,
-            color: color,
-            time: timeStr
-        });
+            channel_name: targetCh,
+            channel_id: "1350706770527653992",
+            content: text,
+            attachments: imgUrl ? [imgUrl] : [],
+            timestamp: timeStr,
+            date: now.toISOString().slice(0, 10)
+        };
+
+        window._chatMessages = window._chatMessages || [];
+        window._chatMessages.push(newMsg);
+        localStorage.setItem('shadow_chat_cache', JSON.stringify(window._chatMessages));
+        renderChatMessages();
 
         inputEl.value = '';
+        if (inputImgEl) inputImgEl.value = '';
+        if (attachBar) attachBar.style.display = 'none';
+
+        // Enviar al backend vía API
+        try {
+            await fetch('/api/chat/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    text: text,
+                    channel_name: targetCh,
+                    image_url: imgUrl
+                })
+            });
+        } catch(e) {}
     }
 
     btnSend.addEventListener('click', sendCurrent);
@@ -241,25 +413,119 @@ function initChatSystem() {
     // Shortcuts chips
     document.getElementById('btn-chip-booyah')?.addEventListener('click', () => {
         inputEl.value = "🏆 ¡¡¡BOOYAH!!! Victoria magistral en Free Fire para la escuadra.";
+        inputEl.focus();
     });
     document.getElementById('btn-chip-gang')?.addEventListener('click', () => {
         inputEl.value = "👑 El Gang de Free Fire dominando Bermuda en clasificatoria.";
+        inputEl.focus();
     });
     document.getElementById('btn-chip-donato')?.addEventListener('click', () => {
         inputEl.value = "🎯 Headshot pa tu casa crack de parte del Donato.";
+        inputEl.focus();
     });
     document.getElementById('btn-chip-zelika')?.addEventListener('click', () => {
         inputEl.value = "⚡ Movimiento insano 360 grados y pared Gloo modo flash.";
+        inputEl.focus();
     });
 }
 
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>"']/g, m => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+    })[m]);
+}
+
+window.zoomImage = function(url) {
+    const modal = document.getElementById('image-zoom-modal');
+    const imgEl = document.getElementById('image-zoom-img');
+    if (modal && imgEl) {
+        imgEl.src = url;
+        modal.classList.add('open');
+    }
+};
+
+document.getElementById('btn-close-image-modal')?.addEventListener('click', () => {
+    document.getElementById('image-zoom-modal')?.classList.remove('open');
+});
+
 /* =========================================================
-   5. GAME BOTS (MATCHMAKING FREE FIRE)
+   5. GAME BOTS (55 CUENTAS BOTS RANDOM DE FREE FIRE)
    ========================================================= */
+const FREEFIRE_55_BOTS_POOL = [
+    { name: "꧁༒☬ALEX_INSANO☬༒꧂", level: 84, rank: "Gran Maestro Top 100", hs: "91.4%", kd: "7.8", region: "SUR" },
+    { name: "⚡GHOST_SHADOW_99⚡", level: 82, rank: "Heroico 5★", hs: "88.2%", kd: "6.9", region: "NORTE" },
+    { name: "亗 COBRA_KING 亗", level: 79, rank: "Heroico 4★", hs: "85.6%", kd: "6.2", region: "EEUU" },
+    { name: "★_VILLANO_77_★", level: 88, rank: "Gran Maestro Top 50", hs: "94.1%", kd: "8.4", region: "SUR" },
+    { name: "ঔৣ☬EL_PATRON☬ঔৣ", level: 85, rank: "Gran Maestro", hs: "89.5%", kd: "7.2", region: "NORTE" },
+    { name: "乂_NINJA_FF_乂", level: 76, rank: "Heroico 3★", hs: "84.0%", kd: "5.8", region: "EEUU" },
+    { name: "🔥_DRAGON_BLACK_🔥", level: 81, rank: "Heroico 5★", hs: "87.3%", kd: "6.5", region: "SUR" },
+    { name: "CR7_HACKER_BOY", level: 78, rank: "Heroico 3★", hs: "86.1%", kd: "6.1", region: "NORTE" },
+    { name: "[BOT] Tuerka_Vip_01", level: 75, rank: "Heroico 2★", hs: "82.5%", kd: "5.4", region: "EEUU" },
+    { name: "亗 MATADOR_PRO 亗", level: 86, rank: "Gran Maestro Top 200", hs: "90.2%", kd: "7.9", region: "SUR" },
+    { name: "★_SHADOW_SNIPER_★", level: 83, rank: "Heroico 5★", hs: "92.8%", kd: "7.1", region: "NORTE" },
+    { name: "ঔৣ☬K1LL3R_999☬ঔৣ", level: 80, rank: "Heroico 4★", hs: "86.7%", kd: "6.3", region: "EEUU" },
+    { name: "⚡THUNDER_STRIKE⚡", level: 77, rank: "Heroico 3★", hs: "83.9%", kd: "5.9", region: "SUR" },
+    { name: "꧁༒ALAN_HEROICO༒꧂", level: 89, rank: "Gran Maestro Top 20", hs: "95.6%", kd: "9.2", region: "NORTE" },
+    { name: "[BOT] ZELIKA_JR_55", level: 82, rank: "Heroico 5★", hs: "89.0%", kd: "7.0", region: "EEUU" },
+    { name: "亗 PEPE_R18 亗", level: 78, rank: "Heroico 3★", hs: "84.5%", kd: "6.0", region: "SUR" },
+    { name: "★_DARK_VIPER_★", level: 84, rank: "Gran Maestro", hs: "90.8%", kd: "7.7", region: "NORTE" },
+    { name: "ঔৣ☬SOUL_REAPER☬ঔৣ", level: 87, rank: "Gran Maestro Top 80", hs: "93.4%", kd: "8.3", region: "EEUU" },
+    { name: "⚡VOLT_MASTER⚡", level: 75, rank: "Heroico 2★", hs: "82.1%", kd: "5.5", region: "SUR" },
+    { name: "亗 ASESINO_X 亗", level: 83, rank: "Heroico 5★", hs: "88.7%", kd: "7.2", region: "NORTE" },
+    { name: "꧁༒BLACK_WOLF༒꧂", level: 80, rank: "Heroico 4★", hs: "86.3%", kd: "6.4", region: "EEUU" },
+    { name: "★_STORM_RIDER_★", level: 76, rank: "Heroico 3★", hs: "83.5%", kd: "5.7", region: "SUR" },
+    { name: "[BOT] DONATO_CLONE_7", level: 85, rank: "Gran Maestro", hs: "91.9%", kd: "8.1", region: "NORTE" },
+    { name: "亗 TOXIC_BOY 亗", level: 79, rank: "Heroico 4★", hs: "85.2%", kd: "6.2", region: "EEUU" },
+    { name: "ঔৣ☬DEVIL_SHOT☬ঔৣ", level: 86, rank: "Gran Maestro Top 150", hs: "92.1%", kd: "8.0", region: "SUR" },
+    { name: "⚡CYBER_PHANTOM⚡", level: 81, rank: "Heroico 5★", hs: "87.9%", kd: "6.8", region: "NORTE" },
+    { name: "꧁༒RED_BLOOD༒꧂", level: 77, rank: "Heroico 3★", hs: "84.2%", kd: "5.9", region: "EEUU" },
+    { name: "★_APEX_HUNTER_★", level: 88, rank: "Gran Maestro Top 40", hs: "94.7%", kd: "8.9", region: "SUR" },
+    { name: "[BOT] ffglory_LΣVΣLS_1", level: 75, rank: "Heroico 2★", hs: "81.9%", kd: "5.3", region: "NORTE" },
+    { name: "[BOT] ffglory_LΣVΣLS_2", level: 76, rank: "Heroico 2★", hs: "82.4%", kd: "5.4", region: "SUR" },
+    { name: "[BOT] ffglory_LΣVΣLS_3", level: 78, rank: "Heroico 3★", hs: "84.1%", kd: "6.0", region: "EEUU" },
+    { name: "[BOT] ffglory_LΣVΣLS_4", level: 79, rank: "Heroico 4★", hs: "85.0%", kd: "6.2", region: "SUR" },
+    { name: "亗 VENOM_SPIKE 亗", level: 82, rank: "Heroico 5★", hs: "88.5%", kd: "7.0", region: "NORTE" },
+    { name: "ঔৣ☬INFERNO_VIP☬ঔৣ", level: 84, rank: "Gran Maestro", hs: "90.4%", kd: "7.6", region: "EEUU" },
+    { name: "⚡TITAN_FORCE⚡", level: 80, rank: "Heroico 4★", hs: "86.0%", kd: "6.4", region: "SUR" },
+    { name: "꧁༒GALAXY_BOY༒꧂", level: 87, rank: "Gran Maestro Top 70", hs: "93.1%", kd: "8.2", region: "NORTE" },
+    { name: "★_PHOENIX_FIRE_★", level: 83, rank: "Heroico 5★", hs: "89.3%", kd: "7.3", region: "EEUU" },
+    { name: "亗 ZERO_COOL 亗", level: 78, rank: "Heroico 3★", hs: "84.8%", kd: "6.1", region: "SUR" },
+    { name: "ঔৣ☬SHADOW_LORD☬ঔৣ", level: 90, rank: "Gran Maestro Top 10", hs: "96.4%", kd: "9.5", region: "NORTE" },
+    { name: "⚡ALPHA_STRIKER⚡", level: 81, rank: "Heroico 5★", hs: "87.5%", kd: "6.7", region: "EEUU" },
+    { name: "꧁༒DEMON_KING༒꧂", level: 85, rank: "Gran Maestro", hs: "91.2%", kd: "7.9", region: "SUR" },
+    { name: "★_VORTEX_SNIPER_★", level: 82, rank: "Heroico 5★", hs: "88.9%", kd: "7.1", region: "NORTE" },
+    { name: "[BOT] BOT_INSANO_77", level: 76, rank: "Heroico 3★", hs: "83.7%", kd: "5.8", region: "EEUU" },
+    { name: "亗 SAVAGE_BEAST 亗", level: 84, rank: "Gran Maestro", hs: "90.7%", kd: "7.8", region: "SUR" },
+    { name: "ঔৣ☬IRON_FIST☬ঔৣ", level: 79, rank: "Heroico 4★", hs: "85.8%", kd: "6.3", region: "NORTE" },
+    { name: "⚡OMEGA_VIP⚡", level: 86, rank: "Gran Maestro Top 120", hs: "92.5%", kd: "8.1", region: "EEUU" },
+    { name: "꧁༒NEON_BLADE༒꧂", level: 80, rank: "Heroico 4★", hs: "86.5%", kd: "6.5", region: "SUR" },
+    { name: "★_BLOOD_HUNTER_★", level: 83, rank: "Heroico 5★", hs: "89.8%", kd: "7.4", region: "NORTE" },
+    { name: "亗 HYDRA_GANG 亗", level: 77, rank: "Heroico 3★", hs: "84.3%", kd: "5.9", region: "EEUU" },
+    { name: "ঔৣ☬CHAOS_GOD☬ঔৣ", level: 89, rank: "Gran Maestro Top 30", hs: "95.2%", kd: "9.0", region: "SUR" },
+    { name: "⚡FROST_BITE⚡", level: 81, rank: "Heroico 5★", hs: "88.0%", kd: "6.9", region: "NORTE" },
+    { name: "꧁༒SPECTER_X༒꧂", level: 85, rank: "Gran Maestro", hs: "91.7%", kd: "8.0", region: "EEUU" },
+    { name: "★_RAVEN_WING_★", level: 78, rank: "Heroico 3★", hs: "85.1%", kd: "6.1", region: "SUR" },
+    { name: "亗 ULTIMATE_PRO 亗", level: 88, rank: "Gran Maestro Top 60", hs: "94.3%", kd: "8.7", region: "NORTE" },
+    { name: "ঔৣ☬MASTER_CHIEF_FF☬ঔৣ", level: 91, rank: "Gran Maestro Top 5", hs: "97.1%", kd: "9.8", region: "EEUU" }
+];
+
+function getRandomBots(count = 3) {
+    const shuffled = [...FREEFIRE_55_BOTS_POOL].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, count).map(b => {
+        const id = Math.floor(Math.random() * 9000000000) + 1000000000;
+        const ping = Math.floor(Math.random() * 18) + 8;
+        return { ...b, id, ping };
+    });
+}
+
 function initGameBots() {
     const btnLaunch = document.getElementById('btn-launch-gamebots');
+    const btnRegen = document.getElementById('btn-regen-squad');
+    const btnView55 = document.getElementById('btn-view-all-55-bots');
     const inputId = document.getElementById('gb-input-id');
     const selectReg = document.getElementById('gb-select-region');
+    const selectMode = document.getElementById('gb-select-mode');
     const resultBox = document.getElementById('gb-result-box');
     const emptyState = document.getElementById('gb-empty-state');
     const squadDisplay = document.getElementById('gb-squad-display');
@@ -267,54 +533,100 @@ function initGameBots() {
     const squadCodeEl = document.getElementById('gb-squad-code');
     const squadMembersEl = document.getElementById('gb-squad-members');
 
-    if (!btnLaunch) return;
+    const modalBots = document.getElementById('bots-55-modal');
+    const modalBotsGrid = document.getElementById('modal-bots-grid');
+    const btnCloseModal = document.getElementById('btn-close-bots-modal');
 
-    btnLaunch.addEventListener('click', () => {
-        const idVal = inputId.value.trim();
+    function generateSquad() {
+        const idVal = inputId ? inputId.value.trim() : '';
         if (!idVal || idVal.length < 5) {
             alert('⚠️ Por favor ingresa una ID de Free Fire válida (mínimo 5 dígitos).');
             return;
         }
 
-        const regVal = selectReg.value;
+        const regVal = selectReg ? selectReg.value : 'SUR';
+        const modeVal = selectMode ? selectMode.value : 'de';
         const teamNum = Math.floor(Math.random() * 9000) + 1000;
         const teamCode = `#FF-${Math.floor(Math.random() * 90000) + 10000}`;
 
-        const botNames = [
-            `[BOT] Alex_Insano_${Math.floor(Math.random() * 89) + 10}`,
-            `[BOT] Ghost_Shadow_${Math.floor(Math.random() * 89) + 10}`,
-            `[BOT] Cobra_King_${Math.floor(Math.random() * 89) + 10}`
-        ];
+        const bots = getRandomBots(3);
 
-        squadNameEl.textContent = `🔥 ESCUADRA BOTS HEROICA #${teamNum}`;
+        const modeTitles = {
+            'br': 'BR CLASIFICATORIA',
+            'de': 'DUELO DE ESCUADRAS',
+            'solo': 'SOLO VS BOTS'
+        };
+        const modeTitle = modeTitles[modeVal] || 'HEROICA';
+
+        squadNameEl.textContent = `🔥 ESCUADRA BOTS ${modeTitle} #${teamNum}`;
         squadCodeEl.textContent = `CÓDIGO DE SALA: ${teamCode}`;
 
         squadMembersEl.innerHTML = `
-            <div class="squad-member-card">
-                <div>👑 <strong>[LÍDER] ID: ${idVal}</strong> (Tu Cuenta)</div>
+            <div class="squad-member-card" style="border-left: 3px solid #FFD700;">
+                <div>
+                    👑 <strong>[LÍDER] ID: ${escapeHtml(idVal)}</strong> (Tu Cuenta)
+                    <div style="font-size:11px; color:#888; margin-top:2px;">Región: ${regVal} • Modo: ${modeTitle}</div>
+                </div>
                 <span class="badge-vip">${regVal}</span>
             </div>
-            <div class="squad-member-card">
-                <div>🤖 <strong>${botNames[0]}</strong> (Nivel 78 • Heroico)</div>
-                <span class="badge-status-ready">CONECTADO</span>
-            </div>
-            <div class="squad-member-card">
-                <div>🤖 <strong>${botNames[1]}</strong> (Nivel 82 • Gran Maestro)</div>
-                <span class="badge-status-ready">CONECTADO</span>
-            </div>
-            <div class="squad-member-card">
-                <div>🤖 <strong>${botNames[2]}</strong> (Nivel 75 • Heroico)</div>
-                <span class="badge-status-ready">CONECTADO</span>
-            </div>
+            ${bots.map((b, i) => `
+                <div class="squad-member-card" style="border-left: 3px solid #2ECC71;">
+                    <div>
+                        🤖 <strong>${escapeHtml(b.name)}</strong>
+                        <div style="font-size:11px; color:#aaa; margin-top:3px; display:flex; gap:10px; flex-wrap:wrap;">
+                            <span>ID: <code>${b.id}</code></span>
+                            <span style="color:#00F0FF;"><i class="fa-solid fa-trophy"></i> Nivel ${b.level}</span>
+                            <span style="color:#FFD700;"><i class="fa-solid fa-medal"></i> ${b.rank}</span>
+                            <span style="color:#FF0055;"><i class="fa-solid fa-crosshairs"></i> HS: ${b.hs}</span>
+                            <span style="color:#2ECC71;"><i class="fa-solid fa-skull"></i> K/D: ${b.kd}</span>
+                        </div>
+                    </div>
+                    <span class="badge-status-ready">ONLINE • ${b.ping}ms</span>
+                </div>
+            `).join('')}
         `;
 
         emptyState.classList.add('hidden');
         squadDisplay.classList.remove('hidden');
 
-        // Play positive sound tone
-        playTone(523.25, 0.2); // C5
-        setTimeout(() => playTone(659.25, 0.3), 150); // E5
-    });
+        playTone(523.25, 0.2);
+        setTimeout(() => playTone(659.25, 0.3), 150);
+    }
+
+    if (btnLaunch) btnLaunch.addEventListener('click', generateSquad);
+    if (btnRegen) btnRegen.addEventListener('click', generateSquad);
+
+    // Modal de Roster de 55 Bots
+    function open55BotsModal() {
+        if (!modalBots || !modalBotsGrid) return;
+        modalBotsGrid.innerHTML = FREEFIRE_55_BOTS_POOL.map((b, idx) => {
+            const fakeId = 1980000000 + idx * 73 + 12;
+            return `
+                <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:4px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:10px; color:#888;">#${idx + 1}</span>
+                        <span style="font-size:9px; background:rgba(46,204,113,0.15); color:#2ECC71; padding:1px 6px; border-radius:4px;">🟢 ACTIVO</span>
+                    </div>
+                    <strong style="font-size:12px; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(b.name)}</strong>
+                    <div style="font-size:10px; color:#aaa; display:flex; justify-content:space-between;">
+                        <span>Nvl. ${b.level}</span>
+                        <span style="color:#FFD700;">${b.rank.split(' ')[0]}</span>
+                        <span style="color:#00F0FF;">${b.region}</span>
+                    </div>
+                    <div style="font-size:9px; color:#666;">ID: ${fakeId}</div>
+                </div>
+            `;
+        }).join('');
+
+        modalBots.classList.add('open');
+    }
+
+    if (btnView55) btnView55.addEventListener('click', open55BotsModal);
+    if (btnCloseModal) {
+        btnCloseModal.addEventListener('click', () => {
+            modalBots.classList.remove('open');
+        });
+    }
 }
 
 /* =========================================================
