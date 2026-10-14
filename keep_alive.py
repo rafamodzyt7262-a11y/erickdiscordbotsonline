@@ -523,3 +523,9 @@ def start_keep_alive(stats_manager=None, bot=None, port=config.PORT):
     except Exception as e:
         print(f"[KeepAlive] Aviso servidor web: {e}", flush=True)
         return None
+
+if __name__ == "__main__":
+    port = int(os.getenv("PORT", config.PORT or 8080))
+    print(f"[KeepAlive] Iniciando servidor web directamente en puerto {port}...")
+    app.run(host="0.0.0.0", port=port, debug=False)
+
