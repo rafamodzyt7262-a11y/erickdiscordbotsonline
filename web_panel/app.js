@@ -1249,43 +1249,49 @@ function initParticlesBackground() {
 }
 
 /* =========================================================
-   13. REPRODUCTOR DE MÚSICA XXXTENTACION (AUDIO HD)
+   13. REPRODUCTOR DE MÚSICA BÉLICA & TRAP (VOZ REAL HD)
+   2 de XXXTENTACION + El Makabelico (Comando Exclusivo)
    ========================================================= */
-const XXXTENTACION_PLAYLIST = [
+const MUSIC_PLAYLIST = [
     {
         title: "XXXTENTACION - Moonlight",
+        artist: "XXXTENTACION",
         album: "? (Deluxe)",
+        badge: "XXXTENTACION • VOZ REAL",
         cover: "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?q=80&w=200&auto=format&fit=crop",
-        url: "https://archive.org/download/xxxtentacion-moonlight/XXXTENTACION%20-%20Moonlight%20%28Official%20Music%20Video%29.mp3",
-        bpm: 128
+        url: "audio/xxxtentacion_moonlight.mp3"
     },
     {
         title: "XXXTENTACION - SAD!",
+        artist: "XXXTENTACION",
         album: "? (Deluxe)",
+        badge: "XXXTENTACION • VOZ REAL",
         cover: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=200&auto=format&fit=crop",
-        url: "https://archive.org/download/xxxtentacion-sad_202105/XXXTENTACION%20-%20SAD%21.mp3",
-        bpm: 75
+        url: "audio/xxxtentacion_sad.mp3"
     },
     {
-        title: "XXXTENTACION - Jocelyn Flores",
-        album: "17",
+        title: "El Makabelico - El Comando Exclusivo",
+        artist: "El Makabelico",
+        album: "Rap Bélico",
+        badge: "MAKABELICO • BÉLICO REAL",
         cover: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=200&auto=format&fit=crop",
-        url: "https://archive.org/download/xxxtentacion-jocelyn-flores/XXXTENTACION%20-%20Jocelyn%20Flores%20%28Audio%29.mp3",
-        bpm: 120
+        url: "audio/makabelico_1.mp3"
     },
     {
-        title: "XXXTENTACION - Hope",
-        album: "?",
+        title: "El Makabelico - Blindajes Bélicos",
+        artist: "El Makabelico",
+        album: "Comando Exclusivo",
+        badge: "MAKABELICO • BÉLICO REAL",
+        cover: "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=200&auto=format&fit=crop",
+        url: "audio/makabelico_2.mp3"
+    },
+    {
+        title: "El Makabelico - El Topón Bélico",
+        artist: "El Makabelico",
+        album: "Comando Exclusivo",
+        badge: "MAKABELICO • BÉLICO REAL",
         cover: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=200&auto=format&fit=crop",
-        url: "https://archive.org/download/xxxtentacion-hope/XXXTENTACION%20-%20Hope.mp3",
-        bpm: 146
-    },
-    {
-        title: "XXXTENTACION - Changes",
-        album: "?",
-        cover: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=200&auto=format&fit=crop",
-        url: "https://archive.org/download/xxxtentacion-changes/XXXTENTACION%20-%20changes.mp3",
-        bpm: 65
+        url: "audio/makabelico_3.mp3"
     }
 ];
 
@@ -1306,105 +1312,75 @@ function initXXXTENTACIONPlayer() {
     let isPlaying = false;
 
     function loadTrack(idx) {
-        currentTrackIdx = (idx + XXXTENTACION_PLAYLIST.length) % XXXTENTACION_PLAYLIST.length;
-        const track = XXXTENTACION_PLAYLIST[currentTrackIdx];
+        currentTrackIdx = (idx + MUSIC_PLAYLIST.length) % MUSIC_PLAYLIST.length;
+        const track = MUSIC_PLAYLIST[currentTrackIdx];
         if (titleEl) titleEl.textContent = track.title;
         if (coverEl) coverEl.src = track.cover;
+        
+        // Actualizar badge del género
+        const badgeEl = document.querySelector('.music-badge-genre');
+        if (badgeEl) badgeEl.innerHTML = `<i class="fa-solid fa-compact-disc"></i> ${track.badge}`;
+
         audio.src = track.url;
         audio.volume = (volSlider ? volSlider.value : 80) / 100;
     }
 
     loadTrack(0);
 
-    async function togglePlay() {
-        if (!isPlaying) {
-            try {
-                await audio.play();
-                isPlaying = true;
-                iconPlay.className = 'fa-solid fa-pause';
-                if (eqBox) eqBox.classList.add('playing');
-                if (coverEl) coverEl.classList.add('spinning');
-            } catch (err) {
-                console.log("Audio autoplay / stream blocked, usando generador ambiental.");
-                playAmbientXBeats();
-                isPlaying = true;
-                iconPlay.className = 'fa-solid fa-pause';
-                if (eqBox) eqBox.classList.add('playing');
-                if (coverEl) coverEl.classList.add('spinning');
-            }
-        } else {
-            audio.pause();
-            stopAmbientXBeats();
-            isPlaying = false;
-            iconPlay.className = 'fa-solid fa-play';
-            if (eqBox) eqBox.classList.remove('playing');
-            if (coverEl) coverEl.classList.remove('spinning');
+    async function playCurrentTrack() {
+        try {
+            await audio.play();
+            isPlaying = true;
+            if (iconPlay) iconPlay.className = 'fa-solid fa-pause';
+            if (eqBox) eqBox.classList.add('playing');
+            if (coverEl) coverEl.classList.add('spinning');
+        } catch (err) {
+            console.log("Audio play error:", err);
         }
     }
 
-    playBtn.addEventListener('click', togglePlay);
+    function pauseCurrentTrack() {
+        audio.pause();
+        isPlaying = false;
+        if (iconPlay) iconPlay.className = 'fa-solid fa-play';
+        if (eqBox) eqBox.classList.remove('playing');
+        if (coverEl) coverEl.classList.remove('spinning');
+    }
 
+    playBtn.addEventListener('click', () => {
+        if (!isPlaying) {
+            playCurrentTrack();
+        } else {
+            pauseCurrentTrack();
+        }
+    });
+
+    // Skip a la canción anterior con cambio instantáneo de voz real
     if (prevBtn) {
         prevBtn.addEventListener('click', () => {
             loadTrack(currentTrackIdx - 1);
-            if (isPlaying) audio.play().catch(() => {});
+            playCurrentTrack();
         });
     }
 
+    // Skip a la siguiente canción con cambio instantáneo de voz real
     if (nextBtn) {
         nextBtn.addEventListener('click', () => {
             loadTrack(currentTrackIdx + 1);
-            if (isPlaying) audio.play().catch(() => {});
+            playCurrentTrack();
         });
     }
 
+    // Auto-reproducir la siguiente cuando termine la actual
     audio.addEventListener('ended', () => {
         loadTrack(currentTrackIdx + 1);
-        audio.play().catch(() => {});
+        playCurrentTrack();
     });
 
     if (volSlider) {
         volSlider.addEventListener('input', (e) => {
             audio.volume = e.target.value / 100;
         });
-    }
-
-    // Fallback sintetizador armónico Trap / Lofi estilo Moonlight si la red externa tarda
-    let synthLoopTimer = null;
-    let synthCtx = null;
-
-    function playAmbientXBeats() {
-        try {
-            if (!synthCtx) synthCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const chords = [
-                [261.63, 329.63, 392.00], // C
-                [220.00, 261.63, 329.63], // Am
-                [174.61, 220.00, 261.63], // F
-                [196.00, 246.94, 293.66]  // G
-            ];
-            let chordIdx = 0;
-            synthLoopTimer = setInterval(() => {
-                if (!isPlaying) return;
-                const c = chords[chordIdx % chords.length];
-                chordIdx++;
-                c.forEach(f => {
-                    const osc = synthCtx.createOscillator();
-                    const g = synthCtx.createGain();
-                    osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(f, synthCtx.currentTime);
-                    g.gain.setValueAtTime(0.04, synthCtx.currentTime);
-                    g.gain.exponentialRampToValueAtTime(0.0001, synthCtx.currentTime + 1.8);
-                    osc.connect(g);
-                    g.connect(synthCtx.destination);
-                    osc.start();
-                    osc.stop(synthCtx.currentTime + 1.8);
-                });
-            }, 1800);
-        } catch(e) {}
-    }
-
-    function stopAmbientXBeats() {
-        if (synthLoopTimer) clearInterval(synthLoopTimer);
     }
 }
 
