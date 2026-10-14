@@ -1,0 +1,6 @@
+{
+  "interval_minutes": 25,
+  "batch_count": 100,
+  "channel_id": "1559842253352992840",
+  "auto_enabled": true
+}

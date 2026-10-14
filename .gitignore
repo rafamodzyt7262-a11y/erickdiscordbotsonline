@@ -1,0 +1,25 @@
+# Archivos de entorno y credenciales sensibles
+.env
+*.env.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+
+# Archivos temporales de compilacion C++
+*.obj
+*.ilk
+*.pdb
+imgui.ini
+
+# Logs y temporales
+*.log
+*.wav
+*.tmp

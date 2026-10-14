@@ -1,0 +1,21 @@
+# Archivos de entorno y credenciales sensibles
+.env
+*.env.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+
+# Logs
+*.log
+
+# Datos locales temporales (opcional, dejamos data/stats.json o permitimos su seguimiento)
+# Si deseas guardar el contador en el repo quita la siguiente linea:
+# data/stats.json

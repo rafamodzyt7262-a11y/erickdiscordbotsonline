@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHADOW BLOCK Panel Web • Control 24/7 de Bots y Servidor • rafamodzyt</title>
+    <meta name="description" content="Panel Web Profesional de Control y Administración para Bots de Discord, Free Fire Matchmaking, 55 Reportes, 9999 Stickers y 500 Voces. Desarrollado por rafamodzyt.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Orbitron:wght@500;700;900&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Background dynamic ambient lights -->
+    <div class="ambient-glow glow-1"></div>
+    <div class="ambient-glow glow-2"></div>
+    <div class="ambient-glow glow-3"></div>
+
+    <div class="app-layout">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-icon">
+                    <i class="fa-brands fa-discord"></i>
+                    <span class="pulse-dot"></span>
+                </div>
+                <div class="brand-text">
+                    <h2>SHADOW BLOCK</h2>
+                    <span class="badge-vip">v2.0 • rafamodzyt</span>
+                </div>
+            </div>
+
+            <div class="server-badge">
+                <div class="server-avatar">
+                    <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=200&auto=format&fit=crop" alt="Server Icon">
+                    <span class="online-indicator"></span>
+                </div>
+                <div class="server-info">
+                    <span class="server-name">SHADOW BLOCK</span>
+                    <span class="server-id">ID: 1350706770527653989</span>
+                </div>
+            </div>
+
+            <nav class="nav-menu">
+                <div class="nav-section">PANEL PRINCIPAL</div>
+                <button class="nav-item active" data-tab="tab-dashboard" id="btn-tab-dashboard">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>Dashboard General</span>
+                </button>
+                <button class="nav-item" data-tab="tab-chat" id="btn-tab-chat">
+                    <i class="fa-solid fa-comments"></i>
+                    <span>Chat en Vivo & Canales</span>
+                    <span class="nav-tag tag-cyan">LIVE</span>
+                </button>
+                <button class="nav-item" data-tab="tab-voice" id="btn-tab-voice">
+                    <i class="fa-solid fa-microphone-lines"></i>
+                    <span>Voz 24/7 & Ecualizador</span>
+                    <span class="nav-tag tag-green">1M h</span>
+                </button>
+
+                <div class="nav-section">FREE FIRE & HERRAMIENTAS</div>
+                <button class="nav-item" data-tab="tab-gamebots" id="btn-tab-gamebots">
+                    <i class="fa-solid fa-robot"></i>
+                    <span>Game Bots (55/día)</span>
+                    <span class="nav-tag tag-orange">FF</span>
+                </button>
+                <button class="nav-item" data-tab="tab-reports" id="btn-tab-reports">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span>Send Reports (12s)</span>
+                    <span class="nav-tag tag-red">55 REP</span>
+                </button>
+                <button class="nav-item" data-tab="tab-soundboard" id="btn-tab-soundboard">
+                    <i class="fa-solid fa-volume-high"></i>
+                    <span>Soundboard (500 Voces)</span>
+                    <span class="nav-tag tag-purple">AUDIO</span>
+                </button>
+                <button class="nav-item" data-tab="tab-stickers" id="btn-tab-stickers">
+                    <i class="fa-solid fa-icons"></i>
+                    <span>Stickers (9,999 Memes)</span>
+                </button>
+                <button class="nav-item" data-tab="tab-wallpapers" id="btn-tab-wallpapers">
+                    <i class="fa-solid fa-image"></i>
+                    <span>Wallpapers 4K Masivo</span>
+                </button>
+
+                <div class="nav-section">ADMINISTRACIÓN & TIENDA</div>
+                <button class="nav-item" data-tab="tab-members" id="btn-tab-members">
+                    <i class="fa-solid fa-users-viewfinder"></i>
+                    <span>Miembros en Cuadritos</span>
+                </button>
+                <button class="nav-item" data-tab="tab-alerts" id="btn-tab-alerts">
+                    <i class="fa-solid fa-bullhorn"></i>
+                    <span>Alertas & Anuncios</span>
+                </button>
+                <button class="nav-item" data-tab="tab-moderation" id="btn-tab-moderation">
+                    <i class="fa-solid fa-gavel"></i>
+                    <span>Moderación & Roles</span>
+                </button>
+                <button class="nav-item" data-tab="tab-tickets" id="btn-tab-tickets">
+                    <i class="fa-solid fa-ticket"></i>
+                    <span>Tienda & Tickets VIP</span>
+                </button>
+                <button class="nav-item" data-tab="tab-settings" id="btn-tab-settings">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Configuración & API</span>
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="creator-card">
+                    <div class="creator-avatar">
+                        <i class="fa-solid fa-crown"></i>
+                    </div>
+                    <div class="creator-info">
+                        <span class="creator-name">rafamodzyt</span>
+                        <span class="creator-role">Owner & Creador Oficial</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT WRAPPER -->
+        <main class="main-wrapper">
+            <!-- HEADER -->
+            <header class="app-header">
+                <div class="header-left">
+                    <h1 class="page-title" id="page-current-title">Dashboard General</h1>
+                    <span class="header-subtitle">Panel de Control en Línea • Servidor Oficial SHADOW BLOCK</span>
+                </div>
+                <div class="header-right">
+                    <div class="metric-pill">
+                        <span class="metric-dot dot-green"></span>
+                        <span class="metric-label">Bots:</span>
+                        <span class="metric-val">2 Online 24/7</span>
+                    </div>
+                    <div class="metric-pill">
+                        <i class="fa-solid fa-bolt text-yellow"></i>
+                        <span class="metric-label">Ping:</span>
+                        <span class="metric-val" id="metric-ping">18 ms</span>
+                    </div>
+                    <div class="metric-pill">
+                        <i class="fa-solid fa-clock text-cyan"></i>
+                        <span class="metric-val" id="metric-clock">00:00:00</span>
+                    </div>
+                    <a href="https://discord.gg/EFz8NB99N4" target="_blank" class="btn-discord-join">
+                        <i class="fa-brands fa-discord"></i>
+                        <span>Entrar al Servidor</span>
+                    </a>
+                </div>
+            </header>
+
+            <!-- CONTENT BODY (TABS) -->
+            <div class="content-body">
+
+                <!-- 1. TAB DASHBOARD -->
+                <section class="tab-content active" id="tab-dashboard">
+                    <div class="stats-grid">
+                        <div class="stat-card card-purple">
+                            <div class="stat-header">
+                                <span class="stat-title">Miembros del Servidor</span>
+                                <i class="fa-solid fa-users stat-icon"></i>
+                            </div>
+                            <div class="stat-value" id="dash-members-count">24</div>
+                            <div class="stat-footer">
+                                <span class="text-green"><i class="fa-solid fa-arrow-trend-up"></i> 100% Sincronizado</span>
+                                <span>SHADOW BLOCK</span>
+                            </div>
+                        </div>
+
+                        <div class="stat-card card-cyan">
+                            <div class="stat-header">
+                                <span class="stat-title">Voz 24/7 Acumulada</span>
+                                <i class="fa-solid fa-headphones stat-icon"></i>
+                            </div>
+                            <div class="stat-value">735.4 h</div>
+                            <div class="stat-footer">
+                                <span class="text-cyan"><i class="fa-solid fa-bullseye"></i> Meta: 1,000,000 h</span>
+                                <span>Erick x Bot</span>
+                            </div>
+                        </div>
+
+                        <div class="stat-card card-orange">
+                            <div class="stat-header">
+                                <span class="stat-title">Soundboard & Voces</span>
+                                <i class="fa-solid fa-volume-high stat-icon"></i>
+                            </div>
+                            <div class="stat-value">500 <small>Voces</small></div>
+                            <div class="stat-footer">
+                                <span class="text-orange">8/8 Oficiales + 500 Web</span>
+                                <span>Donato & Zelika</span>
+                            </div>
+                        </div>
+
+                        <div class="stat-card card-green">
+                            <div class="stat-header">
+                                <span class="stat-title">Stickers & Memes</span>
+                                <i class="fa-solid fa-icons stat-icon"></i>
+                            </div>
+                            <div class="stat-value">9,999</div>
+                            <div class="stat-footer">
+                                <span class="text-green">5/5 Oficiales + Catálogo</span>
+                                <span>HD Ultra</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Action Banners -->
+                    <div class="banner-grid">
+                        <div class="action-banner banner-gamebots">
+                            <div class="banner-content">
+                                <span class="badge-tag">EXCLUSIVO FREE FIRE</span>
+                                <h3>Emparejamiento de Cuentas Bots</h3>
+                                <p>Sube de rango rápido en BR y Duelo de Escuadras. Conexión de hasta 55 cuentas bots por día.</p>
+                                <button class="btn-banner btn-open-gamebots">Abrir Game Bots <i class="fa-solid fa-arrow-right"></i></button>
+                            </div>
+                            <div class="banner-illustration">
+                                <i class="fa-solid fa-gamepad"></i>
+                            </div>
+                        </div>
+
+                        <div class="action-banner banner-reports">
+                            <div class="banner-content">
+                                <span class="badge-tag tag-red">SISTEMA BLACKLIST</span>
+                                <h3>55 Reportes en 12 Segundos</h3>
+                                <p>Dispara ráfagas sincronizadas de 55 cuentas bots para encolar cuentas tóxicas y bugear su rango.</p>
+                                <button class="btn-banner btn-open-reports">Iniciar Reporte <i class="fa-solid fa-arrow-right"></i></button>
+                            </div>
+                            <div class="banner-illustration">
+                                <i class="fa-solid fa-shield-halved"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Live Server Events & Consoles -->
+                    <div class="dashboard-split">
+                        <div class="glass-card flex-2">
+                            <div class="card-head">
+                                <h3><i class="fa-solid fa-wave-pulse text-cyan"></i> Registro de Eventos en Tiempo Real</h3>
+                                <span class="badge-live">LIVE FEED</span>
+                            </div>
+                            <div class="events-timeline" id="dashboard-events-list">
+                                <!-- Populated dynamically by app.js -->
+                            </div>
+                        </div>
+
+                        <div class="glass-card flex-1">
+                            <div class="card-head">
+                                <h3><i class="fa-solid fa-server text-purple"></i> Estado de los Daemons</h3>
+                            </div>
+                            <div class="status-rows">
+                                <div class="status-row">
+                                    <div class="status-name">
+                                        <span class="status-led led-green"></span>
+                                        <strong>Bot 1: Erick x (Voz)</strong>
+                                    </div>
+                                    <span class="badge-ok">ONLINE 24/7</span>
+                                </div>
+                                <div class="status-row">
+                                    <div class="status-name">
+                                        <span class="status-led led-green"></span>
+                                        <strong>Bot 2: SatanasMiPadre</strong>
+                                    </div>
+                                    <span class="badge-ok">ONLINE 24/7</span>
+                                </div>
+                                <div class="status-row">
+                                    <div class="status-name">
+                                        <span class="status-led led-green"></span>
+                                        <strong>Auto-Wallpapers 4K</strong>
+                                    </div>
+                                    <span class="badge-ok">Cada 25 min</span>
+                                </div>
+                                <div class="status-row">
+                                    <div class="status-name">
+                                        <span class="status-led led-green"></span>
+                                        <strong>Auto-Rol Member</strong>
+                                    </div>
+                                    <span class="badge-ok">Activo</span>
+                                </div>
+                            </div>
+                            <div class="credit-box">
+                                <i class="fa-solid fa-code"></i> Desarrollado para <strong>rafamodzyt</strong>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2. TAB CHAT EN VIVO & CANALES -->
+                <section class="tab-content" id="tab-chat">
+                    <div class="chat-container">
+                        <div class="chat-sidebar">
+                            <div class="chat-sidebar-head">
+                                <h3>Canales del Servidor</h3>
+                                <span class="count-badge" id="chat-channels-count">18</span>
+                            </div>
+                            <div class="channels-list" id="chat-channels-list">
+                                <!-- Loaded dynamically -->
+                            </div>
+                        </div>
+
+                        <div class="chat-main">
+                            <div class="chat-header">
+                                <div class="chat-header-info">
+                                    <i class="fa-solid fa-hashtag text-cyan"></i>
+                                    <span class="active-channel-name" id="current-chat-ch-name">general</span>
+                                    <span class="active-channel-topic" id="current-chat-ch-topic">Canal principal de charla</span>
+                                </div>
+                                <div class="chat-header-actions">
+                                    <button class="btn-icon" title="Limpiar Chat" id="btn-clear-chat-view"><i class="fa-solid fa-broom"></i></button>
+                                </div>
+                            </div>
+
+                            <div class="chat-messages" id="chat-messages-container">
+                                <!-- Messages load here -->
+                            </div>
+
+                            <div class="chat-composer">
+                                <div class="composer-toolbar">
+                                    <div class="color-picker-group">
+                                        <label><i class="fa-solid fa-palette"></i> Color:</label>
+                                        <select id="chat-color-select" class="custom-select">
+                                            <option value="default">Normal (Blanco)</option>
+                                            <option value="cyan">Cian Eléctrico (ANSI)</option>
+                                            <option value="green">Verde Neón (ANSI)</option>
+                                            <option value="yellow">Amarillo Dorado (ANSI)</option>
+                                            <option value="red">Rojo Sangre (ANSI)</option>
+                                            <option value="magenta">Magenta Cyber (ANSI)</option>
+                                            <option value="blue">Azul Discord (ANSI)</option>
+                                            <option value="rgb">Arcoíris RGB Animado</option>
+                                        </select>
+                                    </div>
+                                    <div class="toolbar-shortcuts">
+                                        <button class="btn-chip" id="btn-chip-booyah">🔥 Booyah!</button>
+                                        <button class="btn-chip" id="btn-chip-gang">👑 El Gang</button>
+                                        <button class="btn-chip" id="btn-chip-donato">🎯 Donato</button>
+                                        <button class="btn-chip" id="btn-chip-zelika">⚡ Zelika</button>
+                                    </div>
+                                </div>
+                                <div class="composer-input-row">
+                                    <input type="text" id="chat-input-text" placeholder="Escribe un mensaje para enviar a Discord como Bot..." autocomplete="off">
+                                    <button id="btn-send-chat-msg" class="btn-send-primary">
+                                        <span>Enviar</span>
+                                        <i class="fa-solid fa-paper-plane"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 3. TAB VOZ 24/7 & ECUALIZADOR -->
+                <section class="tab-content" id="tab-voice">
+                    <div class="voice-layout">
+                        <div class="glass-card voice-visualizer-card">
+                            <div class="card-head">
+                                <h3><i class="fa-solid fa-headphones text-cyan"></i> Monitor de Conexión de Voz 24/7</h3>
+                                <span class="badge-live">EN SALA: General</span>
+                            </div>
+                            
+                            <!-- Visualizer canvas -->
+                            <div class="equalizer-container">
+                                <canvas id="canvas-equalizer" width="800" height="180"></canvas>
+                            </div>
+
+                            <div class="voice-metrics-grid">
+                                <div class="v-metric">
+                                    <span class="v-label">Canal Conectado</span>
+                                    <span class="v-value" id="voice-ch-name">General (1350706770527653993)</span>
+                                </div>
+                                <div class="v-metric">
+                                    <span class="v-label">Tiempo Acumulado</span>
+                                    <span class="v-value text-cyan">735.4 Horas</span>
+                                </div>
+                                <div class="v-metric">
+                                    <span class="v-label">Meta Programada</span>
+                                    <span class="v-value text-gold">1,000,000 Horas</span>
+                                </div>
+                                <div class="v-metric">
+                                    <span class="v-label">Auto-Reconexión</span>
+                                    <span class="v-value text-green"><i class="fa-solid fa-shield-check"></i> Activa (30s watchdog)</span>
+                                </div>
+                            </div>
+
+                            <div class="voice-controls-bar">
+                                <button class="btn-control btn-play-pulse" id="btn-voice-reconnect">
+                                    <i class="fa-solid fa-rotate-right"></i> Forzar Reconexión de Voz
+                                </button>
+                                <button class="btn-control" id="btn-voice-stream">
+                                    <i class="fa-brands fa-twitch text-purple"></i> Ver Stream Twitch rafamodzyt
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="glass-card voice-settings-card">
+                            <div class="card-head">
+                                <h3><i class="fa-solid fa-sliders text-purple"></i> Parámetros de Audio</h3>
+                            </div>
+                            <div class="setting-item">
+                                <label>Volumen del Bot de Voz (0% - 100%):</label>
+                                <input type="range" min="0" max="100" value="95" class="slider" id="slider-voice-vol">
+                                <span class="slider-display" id="display-voice-vol">95%</span>
+                            </div>
+                            <div class="setting-item">
+                                <label>Calidad de Bitrate Opus:</label>
+                                <select class="custom-select" id="select-voice-bitrate">
+                                    <option value="96">96 kbps (Estándar Discord)</option>
+                                    <option value="128" selected>128 kbps (Ultra HQ)</option>
+                                    <option value="384">384 kbps (Modo Estudio VIP)</option>
+                                </select>
+                            </div>
+                            <div class="setting-item">
+                                <label>Modo Ensordecido / Deafen:</label>
+                                <div class="toggle-switch">
+                                    <input type="checkbox" id="check-self-deaf" checked>
+                                    <label for="check-self-deaf"></label>
+                                    <span>Auto-Deafen para ahorrar ancho de banda</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 4. TAB GAME BOTS (MATCHMAKING FREE FIRE) -->
+                <section class="tab-content" id="tab-gamebots">
+                    <div class="gamebots-layout">
+                        <div class="glass-card gamebots-form-card">
+                            <div class="card-head">
+                                <h3><i class="fa-solid fa-robot text-orange"></i> Emparejamiento con Cuentas Bots Free Fire</h3>
+                                <span class="badge-tag tag-orange">HASTA 55 BOTS / DÍA</span>
+                            </div>
+                            <p class="section-desc">
+                                Conecta tu cuenta de Free Fire a partidas emparejadas con cuentas bots oficiales para asegurar victorias y subir de rango rápidamente.
+                            </p>
+
+                            <div class="form-group">
+                                <label><i class="fa-solid fa-id-card"></i> ID de Jugador Free Fire:</label>
+                                <input type="text" id="gb-input-id" class="custom-input" placeholder="Ej: 1982736451" maxlength="15">
+                            </div>
+
+                            <div class="form-group">
+                                <label><i class="fa-solid fa-earth-americas"></i> Selecciona tu Región:</label>
+                                <select id="gb-select-region" class="custom-select">
+                                    <option value="SUR">SUR (Sudamérica / SAC)</option>
+                                    <option value="NORTE">NORTE (Norteamérica / US-North)</option>
+                                    <option value="EEUU">EEUU (Estados Unidos / US)</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label><i class="fa-solid fa-gamepad"></i> Modo de Juego:</label>
+                                <select id="gb-select-mode" class="custom-select">
+                                    <option value="br">Battle Royale Clasificatoria (Bermuda / Purgatorio)</option>
+                                    <option value="de">Duelo de Escuadras Clasificatoria (DE)</option>
+                                    <option value="solo">Solo vs Bots (Práctica Rápida)</option>
+                                </select>
+                            </div>
+
+                            <button id="btn-launch-gamebots" class="btn-action-glow btn-orange">
+                                <i class="fa-solid fa-fire"></i> Iniciar Emparejamiento con Bots
+                            </button>
+
+                            <div class="alert-box-info">
+                                <i class="fa-solid fa-circle-exclamation"></i>
+                                <span><strong>Límite Diario:</strong> Máximo 55 cuentas bots asignadas por día por usuario para proteger la integridad de tu rango.</span>
+                            </div>
+                        </div>
+
+                        <div class="glass-card gamebots-result-card" id="gb-result-box">
+                            <div class="card-head">
+                                <h3><i class="fa-solid fa-shield-heart text-green"></i> Escuadra de Bots Generada</h3>
+                                <span class="badge-status-ready">LISTO PARA SALA</span>
+                            </div>
+                            <div id="gb-empty-state" class="empty-state">
+                                <i class="fa-solid fa-users-slash"></i>
+                                <p>Ingresa tu ID y Región a la izquierda para generar tu escuadra de bots.</p>
+                            </div>
+                            <div id="gb-squad-display" class="squad-display hidden">
+                                <div class="team-header-pill">
+                                    <span class="th-name" id="gb-squad-name">🔥 ESCUADRA BOTS HEROICA #7721</span>
+                                    <span class="th-code" id="gb-squad-code">CÓDIGO: #FF-89210</span>
+                                </div>
+                                <div class="squad-members-list" id="gb-squad-members">
+                                    <!-- Rendered dynamically -->
+                                </div>
+                                <div class="squad-footer-note">
+                                    <p>✅ Los bots ingresarán a tu sala automáticamente y te cederán todas las kills en la partida.</p>
+                                    <small>Desarrollado y administrado por <strong>rafamodzyt</strong> • SHADOW BLOCK</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 5. TAB SEND REPORTS (55 REPORTES EN 12S) -->
+                <section class="tab-content" id="tab-reports">
+                    <div class="reports-layout">
+                        <div class="glass-card reports-form-card">
+                            <div class="card-head">
+                                <h3><i class="fa-solid fa-triangle-exclamation text-red"></i> Sistema de 55 Reportes & Blacklist</h3>
+                                <span class="badge-tag tag-red">12 SEGUNDOS</span>
+                            </div>
+                            <p class="section-desc">
+                                Envía una ráfaga masiva y sincronizada de <strong>55 reportes automatizados</strong> contra una cuenta para encolarla en la Blacklist del sistema y congelar su rango.
+                            </p>
+
+                            <div class="form-group">
+                                <label><i class="fa-solid fa-bullseye"></i> ID de la Cuenta Objetivo:</label>
+                                <input type="text" id="rep-input-target" class="custom-input" placeholder="Ej: 5829104921" maxlength="15">
+                            </div>
+
+                            <div class="form-group">
+                                <label><i class="fa-solid fa-globe"></i> Región del Objetivo:</label>
+                                <select id="rep-select-region" class="custom-select">
+                                    <option value="SUR">SUR (Sudamérica)</option>
+                                    <option value="NORTE">NORTE (Norteamérica)</option>
+                                    <option value="EEUU">EEUU (Estados Unidos)</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label><i class="fa-solid fa-comment-dots"></i> Motivo del Reporte:</label>
+                                <select id="rep-select-reason" class="custom-select">
+                                    <option value="Aimbot y disparo a la cabeza 100%">Aimbot y disparo a la cabeza 100%</option>
+                                    <option value="Uso de Macro y Regedit no permitido">Uso de Macro y Regedit no permitido</option>
+                                    <option value="Alteración y bugeo de rango clasificatoria">Alteración y bugeo de rango clasificatoria</option>
+                                    <option value="Teletransporte y hacks de velocidad">Teletransporte y hacks de velocidad</option>
+                                </select>
+                            </div>
+
+                            <button id="btn-start-reports-sequence" class="btn-action-glow btn-red">
+                                <i class="fa-solid fa-radiation"></i> Disparar 55 Reportes (12s)
+                            </button>
+                        </div>
+
+                        <div class="glass-card reports-progress-card">
+                            <div class="card-head">
+                                <h3><i class="fa-solid fa-terminal text-cyan"></i> Monitor de Ejecución en Vivo (12 Segundos)</h3>
+                                <span class="badge-timer" id="rep-timer-display">12.0s</span>
+                            </div>
+
+                            <div class="progress-bar-container">
+                                <div class="progress-bar-track">
+                                    <div class="progress-bar-fill" id="rep-progress-fill"></div>
+                                </div>
+                                <div class="progress-labels">
+                                    <span id="rep-step-text">Listo para iniciar ráfaga...</span>
+                                    <span id="rep-percent-text">0%</span>
+                                </div>
+                            </div>
+
+                            <div class="reports-live-terminal" id="rep-terminal-logs">
+                                <div class="term-line">> Red de 55 cuentas bots en espera.</div>
+                                <div class="term-line">> Protocolo Blacklist configurado.</div>
+                            </div>
+
+                            <div class="rep-final-badge hidden" id="rep-final-badge">
+                                <div class="success-icon"><i class="fa-solid fa-circle-check"></i></div>
+                                <div class="success-details">
+                                    <h4>¡55 REPORTES ENVIADOS SATISFACTORIAMENTE!</h4>
+                                    <p id="rep-final-msg">Cuenta encolada en Blacklist y rango bugeado con éxito.</p>
+                                    <small>Créditos oficiales: <strong>rafamodzyt</strong> • SHADOW BLOCK</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 6. TAB SOUNDBOARD 500 VOCES -->
+                <section class="tab-content" id="tab-soundboard">
+                    <div class="soundboard-container">
+                        <div class="soundboard-header-bar">
+                            <div class="search-sound-box">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                                <input type="text" id="search-soundboard" placeholder="Buscar entre las 500 voces de Free Fire (Donato, Zelika, Hackers, Gang, Booyah)...">
+                            </div>
+                            <div class="filter-sound-tabs">
+                                <button class="filter-tab active" data-sound-cat="all">Todos (500)</button>
+                                <button class="filter-tab" data-sound-cat="donato">🎯 Donato (1-100)</button>
+                                <button class="filter-tab" data-sound-cat="zelika">🔥 Zelika (101-200)</button>
+                                <button class="filter-tab" data-sound-cat="hackers">🤖 Hackers (201-300)</button>
+                                <button class="filter-tab" data-sound-cat="gang">👑 El Gang (301-400)</button>
+                                <button class="filter-tab" data-sound-cat="booyah">🏆 Booyah (401-500)</button>
+                            </div>
+                        </div>
+
+                        <!-- 8 Official Server sounds -->
+                        <div class="official-sounds-section">
+                            <h4><i class="fa-solid fa-star text-gold"></i> Sonidos Oficiales en Discord Drawer (SHADOW BLOCK):</h4>
+                            <div class="official-sound-grid" id="official-sounds-grid">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- 500 Extended voice lines grid -->
+                        <h4><i class="fa-solid fa-list-music text-purple"></i> Catálogo Extendido de 500 Voces (Audio Interactivo en Vivo):</h4>
+                        <div class="sounds-extended-grid" id="sounds-extended-grid">
+                            <!-- 500 voices populated by JS -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 7. TAB STICKERS 9,999 MEMES -->
+                <section class="tab-content" id="tab-stickers">
+                    <div class="stickers-container">
+                        <div class="stickers-top-bar">
+                            <div class="search-sticker-box">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                                <input type="text" id="search-stickers" placeholder="Buscar por número (1-9999) o nombre (GigaChad, Pepe, Free Fire, Karely)...">
+                            </div>
+                            <div class="filter-sticker-tabs">
+                                <button class="stk-tab active" data-stk-cat="all">Todos</button>
+                                <button class="stk-tab" data-stk-cat="Free Fire">🔥 Free Fire</button>
+                                <button class="stk-tab" data-stk-cat="Pepe">🐸 Pepe & Wojak</button>
+                                <button class="stk-tab" data-stk-cat="GigaChad">🗿 GigaChad</button>
+                                <button class="stk-tab" data-stk-cat="Cheems">🐕 Cheems</button>
+                                <button class="stk-tab" data-stk-cat="Karely">👑 Karely Ruiz</button>
+                                <button class="stk-tab" data-stk-cat="Hackers">🤖 Hackers</button>
+                            </div>
+                        </div>
+
+                        <div class="stickers-gallery-grid" id="stickers-gallery-grid">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 8. TAB MIEMBROS EN CUADRITOS -->
+                <section class="tab-content" id="tab-members">
+                    <div class="members-layout">
+                        <div class="members-top-controls">
+                            <div class="search-member-box">
+                                <i class="fa-solid fa-user-magnifying-glass"></i>
+                                <input type="text" id="search-member-input" placeholder="Buscar miembro por nombre, rol o ID...">
+                            </div>
+                            <div class="member-filter-pills">
+                                <button class="pill-btn active" data-mfilter="all">Todos (24)</button>
+                                <button class="pill-btn" data-mfilter="online">Online (19)</button>
+                                <button class="pill-btn" data-mfilter="offline">Offline (5)</button>
+                            </div>
+                        </div>
+
+                        <div class="members-grid-container" id="members-cards-grid">
+                            <!-- 24 cards populated by JS -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 9. TAB WALLPAPERS 4K MASIVO -->
+                <section class="tab-content" id="tab-wallpapers">
+                    <div class="wallpapers-layout">
+                        <div class="wp-top-bar">
+                            <div class="wp-title-area">
+                                <h3><i class="fa-solid fa-image text-cyan"></i> Galería Masiva de 99,999+ Wallpapers 4K UHD</h3>
+                                <p>Fondos automáticos enviados a <code>#🖼️・wallpapers-4k-hd</code> cada 25 minutos.</p>
+                            </div>
+                            <div class="wp-actions">
+                                <button class="btn-action-primary" id="btn-trigger-burst-wp">
+                                    <i class="fa-solid fa-bolt"></i> Enviar Ráfaga de 100 Wallpapers Ahora
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="wp-filters">
+                            <button class="wp-tab active" data-wp-cat="all">Todos los Fondos</button>
+                            <button class="wp-tab" data-wp-cat="pc">🖥️ PC (3840 x 2160)</button>
+                            <button class="wp-tab" data-wp-cat="mobile">📱 Móvil AMOLED (1440 x 3120)</button>
+                            <button class="wp-tab" data-wp-cat="gaming">🎮 Gaming & Cyberpunk</button>
+                        </div>
+
+                        <div class="wallpapers-grid" id="wallpapers-grid-display">
+                            <!-- Wallpapers cards -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 10. TAB ALERTAS & ANUNCIOS -->
+                <section class="tab-content" id="tab-alerts">
+                    <div class="alerts-layout">
+                        <div class="glass-card alerts-builder-card">
+                            <div class="card-head">
+                                <h3><i class="fa-solid fa-bullhorn text-gold"></i> Creador de Anuncios y Alertas VIP</h3>
+                            </div>
+                            <div class="form-group">
+                                <label>Canal de Destino:</label>
+                                <select class="custom-select" id="alert-channel-select">
+                                    <option value="1350706770527653992">#general</option>
+                                    <option value="1559826233620168734">#😀botericklogs</option>
+                                    <option value="1559359413402472488">#bienvenida-☺️</option>
+                                    <option value="1559844380934807612">#🎫・comprar-panel-y-bots</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Título del Anuncio:</label>
+                                <input type="text" id="alert-input-title" class="custom-input" value="👑 GRAN ANUNCIO OFICIAL SHADOW BLOCK">
+                            </div>
+                            <div class="form-group">
+                                <label>Contenido / Mensaje:</label>
+                                <textarea id="alert-input-text" class="custom-textarea" rows="4">¡Bienvenidos todos a SHADOW BLOCK! Servidor oficial administrado por rafamodzyt con bots 24/7, emparejamiento con bots de Free Fire y soporte activo.</textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>Color del Embed:</label>
+                                <input type="color" id="alert-input-color" value="#5865F2" class="color-picker-input">
+                            </div>
+                            <button class="btn-action-primary" id="btn-send-discord-announcement">
+                                <i class="fa-solid fa-paper-plane"></i> Publicar Anuncio en Discord
+                            </button>
+                        </div>
+
+                        <div class="glass-card alerts-preview-card">
+                            <div class="card-head">
+                                <h3><i class="fa-solid fa-eye text-cyan"></i> Vista Previa en Discord</h3>
+                            </div>
+                            <div class="discord-embed-preview" id="embed-preview-box">
+                                <div class="embed-color-bar" id="preview-color-bar"></div>
+                                <div class="embed-body">
+                                    <div class="embed-author">
+                                        <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=100&auto=format&fit=crop" class="ea-avatar">
+                                        <span>SHADOW BLOCK • rafamodzyt</span>
+                                    </div>
+                                    <h4 class="embed-title" id="preview-title">👑 GRAN ANUNCIO OFICIAL SHADOW BLOCK</h4>
+                                    <p class="embed-desc" id="preview-desc">¡Bienvenidos todos a SHADOW BLOCK! Servidor oficial administrado por rafamodzyt con bots 24/7, emparejamiento con bots de Free Fire y soporte activo.</p>
+                                    <div class="embed-footer">
+                                        <span>Servidor Oficial • Creado por rafamodzyt</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 11. TAB MODERACIÓN & ROLES -->
+                <section class="tab-content" id="tab-moderation">
+                    <div class="moderation-layout">
+                        <div class="glass-card">
+                            <div class="card-head">
+                                <h3><i class="fa-solid fa-shield-halved text-cyan"></i> Herramientas de Moderación Rápida</h3>
+                            </div>
+                            <div class="mod-actions-grid">
+                                <div class="mod-box">
+                                    <h4><i class="fa-solid fa-broom"></i> Limpiar Mensajes</h4>
+                                    <div class="inline-input">
+                                        <input type="number" min="1" max="100" value="25" class="custom-input" id="mod-purge-count">
+                                        <button class="btn-control" id="btn-mod-purge">Borrar</button>
+                                    </div>
+                                </div>
+                                <div class="mod-box">
+                                    <h4><i class="fa-solid fa-user-xmark"></i> Expulsar Miembro</h4>
+                                    <input type="text" placeholder="ID de Usuario" class="custom-input" id="mod-kick-id">
+                                    <button class="btn-control btn-yellow" id="btn-mod-kick">Kick</button>
+                                </div>
+                                <div class="mod-box">
+                                    <h4><i class="fa-solid fa-ban"></i> Banear Miembro</h4>
+                                    <input type="text" placeholder="ID de Usuario" class="custom-input" id="mod-ban-id">
+                                    <button class="btn-control btn-red" id="btn-mod-ban">Ban</button>
+                                </div>
+                                <div class="mod-box">
+                                    <h4><i class="fa-solid fa-user-tag"></i> Auto-Rol Member</h4>
+                                    <p><small>Asignado automáticamente a todos los nuevos miembros que ingresan.</small></p>
+                                    <span class="badge-ok">ROL: Member (1559846472080687196)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 12. TAB TIENDA & TICKETS VIP -->
+                <section class="tab-content" id="tab-tickets">
+                    <div class="shop-grid">
+                        <div class="shop-card">
+                            <div class="shop-tag">SOFTWARE C++ DX11</div>
+                            <div class="shop-icon"><i class="fa-solid fa-desktop"></i></div>
+                            <h3>Panel C++ DirectX 11 Win32</h3>
+                            <div class="shop-price">$25 <span>USD</span></div>
+                            <ul class="shop-features">
+                                <li><i class="fa-solid fa-check"></i> Renderizado a 60 FPS con Dear ImGui</li>
+                                <li><i class="fa-solid fa-check"></i> 12 Pestañas de Administración Total</li>
+                                <li><i class="fa-solid fa-check"></i> Soundboard Free Fire & 9999 Stickers</li>
+                                <li><i class="fa-solid fa-check"></i> Ejecutable portable sin librerías</li>
+                            </ul>
+                            <button class="btn-shop-buy" id="btn-buy-panel">
+                                <i class="fa-solid fa-cart-shopping"></i> Comprar Panel C++
+                            </button>
+                        </div>
+
+                        <div class="shop-card featured-shop-card">
+                            <div class="shop-tag tag-gold">24/7 VOICE ENGINE</div>
+                            <div class="shop-icon text-gold"><i class="fa-solid fa-robot"></i></div>
+                            <h3>Bot 24/7 de Voz (Erick x)</h3>
+                            <div class="shop-price">$15 <span>USD</span></div>
+                            <ul class="shop-features">
+                                <li><i class="fa-solid fa-check"></i> Meta 1 Millón de Horas en Voz</li>
+                                <li><i class="fa-solid fa-check"></i> Servidor Web Keep-Alive Incluido</li>
+                                <li><i class="fa-solid fa-check"></i> Despliegue en Railway / Docker</li>
+                                <li><i class="fa-solid fa-check"></i> Soporte VIP rafamodzyt</li>
+                            </ul>
+                            <button class="btn-shop-buy btn-gold" id="btn-buy-bot">
+                                <i class="fa-solid fa-rocket"></i> Comprar Bot de Voz
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 13. TAB CONFIGURACIÓN & API -->
+                <section class="tab-content" id="tab-settings">
+                    <div class="glass-card settings-card">
+                        <div class="card-head">
+                            <h3><i class="fa-solid fa-sliders text-cyan"></i> Configuración de Conexión y Endpoints</h3>
+                        </div>
+                        <div class="settings-form">
+                            <div class="form-group">
+                                <label>Servidor Discord ID:</label>
+                                <input type="text" class="custom-input" value="1350706770527653989" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Webhook Oficial de Eventos:</label>
+                                <input type="text" class="custom-input" value="https://discord.com/api/webhooks/1559831359885680731/..." readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Prefijo de Comandos:</label>
+                                <input type="text" class="custom-input" value="//" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Creador y Administrador:</label>
+                                <input type="text" class="custom-input" value="rafamodzyt" readonly>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL PARA INSPECCIÓN DE MIEMBRO -->
+    <div class="modal-backdrop" id="member-modal">
+        <div class="modal-card">
+            <div class="modal-head">
+                <h3 id="modal-m-title">Perfil de Usuario</h3>
+                <button class="btn-close-modal" id="btn-close-member-modal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body" id="modal-m-body">
+                <!-- Injected by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- AUDIO ELEMENT FOR SOUNDBOARD EFFECTS -->
+    <audio id="audio-player"></audio>
+
+    <script src="app.js"></script>
+</body>
+</html>

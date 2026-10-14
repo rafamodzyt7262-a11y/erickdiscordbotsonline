@@ -1,0 +1,33 @@
+========================================================
+   PANEL ADMINISTRADOR DISCORD C++ DIRECTX 11 WIN32
+         Desarrollado y Creado por rafamodzyt
+               Servidor Oficial: SHADOW BLOCK
+========================================================
+
+¡Hola crack! Este es el ejecutable oficial del Panel de Control de Discord 
+programado en C++ nativo y renderizado a 60 FPS con DirectX 11 y Dear ImGui.
+
+---
+🚀 ¿COMO ABRIRLO?
+1. Simplemente haz doble clic en "ABRIR_PANEL.bat" o directamente en "DiscordAdminPanel.exe".
+2. No requiere instalar nada ni librerías pesadas, funciona de inmediato en Windows 10 y Windows 11.
+
+---
+🌟 CARACTERISTICAS DEL PANEL:
+• [#] Canales & Salas: Administra y crea canales de texto, voz y categorías en 1 clic.
+• [CHAT] Chat en Vivo Split: Vista dividida de chat con colores RGB y formato ANSI.
+• [VOZ] Voz 24/7 & 1M Horas: Control de permanencia y ecualizador gráfico en vivo.
+• [!] Alertas & Anuncios: Envío de embeds decorados con banner y alertas masivas.
+• [*] Moderacion & Roles: Kick, ban, mute temporal y administración de roles.
+• [MEMES] Stickers 300+ y 9,999: Buscador de memes y stickers en HD listos para enviar.
+• [AUDIO] Soundboard Free Fire: 500 Voces de Donato, Zelika, Hackers, El Gang y Booyah.
+• [USERS] Miembros en Cuadritos: Grid visual de todos los usuarios con luces LED online/offline.
+• [WALLPAPERS] 4K HD Masivo: Ráfagas de 100 wallpapers cada 25 minutos para PC y Móvil.
+• [TIENDA] Tickets de Compra: Gestión de soporte y ventas VIP.
+• [>] Consola en Vivo: Registro en tiempo real de todos los eventos del servidor.
+
+---
+👑 CREDITOS & CONTACTO:
+• Creador Oficial: rafamodzyt
+• Servidor de Discord: https://discord.gg/EFz8NB99N4
+========================================================

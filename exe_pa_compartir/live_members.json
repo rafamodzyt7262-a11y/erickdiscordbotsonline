@@ -1,0 +1,367 @@
+{
+    "server_name": "SHADOW BLOCK",
+    "guild_id": "1350706770527653989",
+    "events": [
+        {
+            "type": "ACTIVE",
+            "user_id": "1236983422665228289",
+            "name": "imyourpapaladjdj2",
+            "time": "2026-10-14 03:40:31",
+            "details": "Activo en #general",
+            "avatar": "https://cdn.discordapp.com/avatars/1236983422665228289/b0bb4a7b3bf20543a85b5339b632c53b.png?size=1024"
+        },
+        {
+            "type": "ACTIVE",
+            "user_id": "235088799074484224",
+            "name": "Rythm",
+            "time": "2026-10-14 03:33:37",
+            "details": "Activo en #General",
+            "avatar": "https://cdn.discordapp.com/avatars/235088799074484224/a_bf76f4b59ab50da1065df1144d5cf46b.gif?size=1024"
+        },
+        {
+            "type": "ACTIVE",
+            "user_id": "1236983422665228289",
+            "name": "imyourpapaladjdj2",
+            "time": "2026-10-14 03:25:19",
+            "details": "Activo en #general",
+            "avatar": "https://cdn.discordapp.com/avatars/1236983422665228289/b0bb4a7b3bf20543a85b5339b632c53b.png?size=1024"
+        },
+        {
+            "type": "JOIN",
+            "user_id": "1559437873265119252",
+            "name": "Erick X",
+            "time": "2026-10-14 02:29:13",
+            "avatar": "ac0c78942cfd38fa952379d92d375b15"
+        },
+        {
+            "type": "JOIN",
+            "user_id": "1559830923174744125",
+            "name": "SatanasMiPadre",
+            "time": "2026-10-14 02:42:59",
+            "avatar": ""
+        },
+        {
+            "type": "STATUS",
+            "user_id": "1559437873265119252",
+            "name": "Erick X",
+            "time": "2026-10-14 03:00:00",
+            "details": "Conectado 24/7 en voz (General)"
+        }
+    ],
+    "members": [
+        {
+            "id": "1236983422665228289",
+            "name": "imyourpapaladjdj2",
+            "tag": "imyourpapaladjdj2#0",
+            "nick": "imyourpapaladjdj2",
+            "status": "ONLINE",
+            "bot": false,
+            "roles": [
+                "Socios",
+                "owner",
+                "Member"
+            ],
+            "joined_at": "2026-10-13",
+            "avatar_url": "https://cdn.discordapp.com/avatars/1236983422665228289/b0bb4a7b3bf20543a85b5339b632c53b.png?size=1024"
+        },
+        {
+            "id": "1317476435027431428",
+            "name": "ronaldvlq2",
+            "tag": "ronaldvlq2#0",
+            "nick": "ronaldvlq2",
+            "status": "ONLINE",
+            "bot": false,
+            "roles": [
+                "Member"
+            ],
+            "joined_at": "2026-07-15",
+            "avatar_url": "https://cdn.discordapp.com/avatars/1317476435027431428/85e0b615255e0b0f923feffe2c78da46.png"
+        },
+        {
+            "id": "1347414213940875295",
+            "name": "stephen160173",
+            "tag": "stephen160173#0",
+            "nick": "stephen160173",
+            "status": "ONLINE",
+            "bot": false,
+            "roles": [
+                "Member"
+            ],
+            "joined_at": "2025-03-16",
+            "avatar_url": "https://cdn.discordapp.com/avatars/1347414213940875295/4d3ea2cd79b3558252d75cbf6aa58fdb.png"
+        },
+        {
+            "id": "1499945255150162064",
+            "name": "7ondeado",
+            "tag": "7ondeado#0",
+            "nick": "7ondeado",
+            "status": "ONLINE",
+            "bot": false,
+            "roles": [
+                "Member"
+            ],
+            "joined_at": "2026-10-13",
+            "avatar_url": "https://cdn.discordapp.com/avatars/1499945255150162064/bd31b0348d0c95c7528acc8e6e63a798.png"
+        },
+        {
+            "id": "1087994629137383494",
+            "name": "dayanna13",
+            "tag": "dayanna13#0",
+            "nick": "dayanna13",
+            "status": "ONLINE",
+            "bot": false,
+            "roles": [
+                "Member"
+            ],
+            "joined_at": "2026-10-13",
+            "avatar_url": "https://cdn.discordapp.com/avatars/1087994629137383494/9da326cccac2912d5a06953b6fabf0cb.png"
+        },
+        {
+            "id": "1493420715892801596",
+            "name": "usuariodesconocido44",
+            "tag": "usuariodesconocido44#0",
+            "nick": "usuariodesconocido44",
+            "status": "ONLINE",
+            "bot": false,
+            "roles": [
+                "Member"
+            ],
+            "joined_at": "2026-10-13",
+            "avatar_url": "https://cdn.discordapp.com/avatars/1493420715892801596/3124bfa76a3392cee4aff5043450daa3.png"
+        },
+        {
+            "id": "1545983937040351262",
+            "name": "nexuscht",
+            "tag": "nexuscht#0",
+            "nick": "nexuscht",
+            "status": "ONLINE",
+            "bot": false,
+            "roles": [
+                "Member"
+            ],
+            "joined_at": "2026-10-10",
+            "avatar_url": "https://cdn.discordapp.com/avatars/1545983937040351262/92ca9ab099f69f10c45c5466a9260899.png"
+        },
+        {
+            "id": "1527769307625291911",
+            "name": "sthepen0944_99195",
+            "tag": "sthepen0944_99195#0",
+            "nick": "sthepen0944_99195",
+            "status": "ONLINE",
+            "bot": false,
+            "roles": [
+                "Member"
+            ],
+            "joined_at": "2026-08-01",
+            "avatar_url": "https://cdn.discordapp.com/avatars/1527769307625291911/c82b3fa769ed6e6ffdea579381ed5f5c.png"
+        },
+        {
+            "id": "1452607313306456064",
+            "name": "mermito_ff_21366",
+            "tag": "mermito_ff_21366#0",
+            "nick": "mermito_ff_21366",
+            "status": "ONLINE",
+            "bot": false,
+            "roles": [
+                "Member"
+            ],
+            "joined_at": "2026-09-22",
+            "avatar_url": "https://cdn.discordapp.com/avatars/1452607313306456064/19315e3f84726607a1c1fac23f1bbfd7.png"
+        },
+        {
+            "id": "1547046775880159322",
+            "name": "edgar505.1_24501",
+            "tag": "edgar505.1_24501#0",
+            "nick": "edgar505.1_24501",
+            "status": "ONLINE",
+            "bot": false,
+            "roles": [
+                "Member"
+            ],
+            "joined_at": "2026-09-09",
+            "avatar_url": ""
+        },
+        {
+            "id": "1514496859790377053",
+            "name": "poeta0646",
+            "tag": "poeta0646#0",
+            "nick": "poeta0646",
+            "status": "ONLINE",
+            "bot": false,
+            "roles": [
+                "Member"
+            ],
+            "joined_at": "2026-09-04",
+            "avatar_url": ""
+        },
+        {
+            "id": "1351532961060753492",
+            "name": "leinad0882",
+            "tag": "leinad0882#0",
+            "nick": "leinad0882",
+            "status": "ONLINE",
+            "bot": false,
+            "roles": [
+                "Member"
+            ],
+            "joined_at": "2026-08-24",
+            "avatar_url": "https://cdn.discordapp.com/avatars/1351532961060753492/1934ff58994162d38dcc3d2e218e9969.png"
+        },
+        {
+            "id": "1512878380242960517",
+            "name": "juanchis0565",
+            "tag": "juanchis0565#0",
+            "nick": "juanchis0565",
+            "status": "ONLINE",
+            "bot": false,
+            "roles": [
+                "Member"
+            ],
+            "joined_at": "2026-08-15",
+            "avatar_url": "https://cdn.discordapp.com/avatars/1512878380242960517/a_eba15cc4a11f18ab50db4609862070f4.png"
+        },
+        {
+            "id": "1427803651967029399",
+            "name": "daniel_m503_20263",
+            "tag": "daniel_m503_20263#0",
+            "nick": "daniel_m503_20263",
+            "status": "ONLINE",
+            "bot": false,
+            "roles": [
+                "Member"
+            ],
+            "joined_at": "2026-08-15",
+            "avatar_url": "https://cdn.discordapp.com/avatars/1427803651967029399/1ce97482c8d278956b28f196f0691aaf.png"
+        },
+        {
+            "id": "1232875891420565597",
+            "name": "samuel_vip",
+            "tag": "samuel_vip#0",
+            "nick": "samuel_vip",
+            "status": "ONLINE",
+            "bot": false,
+            "roles": [
+                "Member"
+            ],
+            "joined_at": "2026-08-15",
+            "avatar_url": "https://cdn.discordapp.com/avatars/1232875891420565597/a_11700e203ba57a28d2b02e740a478ecc.png"
+        },
+        {
+            "id": "1526572747231203369",
+            "name": "erick_yupi",
+            "tag": "erick_yupi#0",
+            "nick": "erick_yupi",
+            "status": "ONLINE",
+            "bot": false,
+            "roles": [
+                "Member"
+            ],
+            "joined_at": "2026-07-15",
+            "avatar_url": "https://cdn.discordapp.com/avatars/1526572747231203369/c82b3fa769ed6e6ffdea579381ed5f5c.png"
+        },
+        {
+            "id": "1107786916864196731",
+            "name": "58jesus1",
+            "tag": "58jesus1#0",
+            "nick": "58jesus1",
+            "status": "ONLINE",
+            "bot": false,
+            "roles": [
+                "Member"
+            ],
+            "joined_at": "2026-04-26",
+            "avatar_url": "https://cdn.discordapp.com/avatars/1107786916864196731/cefea667dde810351e264707bcac34d2.png"
+        },
+        {
+            "id": "1469397354225598689",
+            "name": "demente06797",
+            "tag": "demente06797#0",
+            "nick": "demente06797",
+            "status": "ONLINE",
+            "bot": false,
+            "roles": [
+                "Member"
+            ],
+            "joined_at": "2026-02-06",
+            "avatar_url": "https://cdn.discordapp.com/avatars/1469397354225598689/6c5996770c985bcd6e5b68131ff2ba04.png"
+        },
+        {
+            "id": "1465906742721515571",
+            "name": "bejghshsn_30333",
+            "tag": "bejghshsn_30333#0",
+            "nick": "bejghshsn_30333",
+            "status": "ONLINE",
+            "bot": false,
+            "roles": [
+                "Member"
+            ],
+            "joined_at": "2026-01-28",
+            "avatar_url": "https://cdn.discordapp.com/avatars/1465906742721515571/df05c6a3748ecf260acc9ace29849c18.png"
+        },
+        {
+            "id": "1464094749412688039",
+            "name": "yova0079",
+            "tag": "yova0079#0",
+            "nick": "yova0079",
+            "status": "ONLINE",
+            "bot": false,
+            "roles": [
+                "Member"
+            ],
+            "joined_at": "2026-01-23",
+            "avatar_url": ""
+        },
+        {
+            "id": "1443853706733813890",
+            "name": "josebriceno0730_58382",
+            "tag": "josebriceno0730_58382#0",
+            "nick": "josebriceno0730_58382",
+            "status": "ONLINE",
+            "bot": false,
+            "roles": [
+                "Member"
+            ],
+            "joined_at": "2025-11-28",
+            "avatar_url": ""
+        },
+        {
+            "id": "1350703178936487936",
+            "name": "valiant_pony_98450",
+            "tag": "valiant_pony_98450#0",
+            "nick": "valiant_pony_98450",
+            "status": "ONLINE",
+            "bot": false,
+            "roles": [
+                "Member"
+            ],
+            "joined_at": "2025-03-16",
+            "avatar_url": "https://cdn.discordapp.com/avatars/1350703178936487936/5445ffd7ffb201a98393cbdf684ea4b1.png"
+        },
+        {
+            "id": "1350706445993381959",
+            "name": "yovax7_99507",
+            "tag": "yovax7_99507#0",
+            "nick": "yovax7_99507",
+            "status": "ONLINE",
+            "bot": false,
+            "roles": [
+                "Member"
+            ],
+            "joined_at": "2025-03-16",
+            "avatar_url": "https://cdn.discordapp.com/avatars/1350706445993381959/6c5996770c985bcd6e5b68131ff2ba04.png"
+        },
+        {
+            "id": "1349565224172388372",
+            "name": "soxphuwu",
+            "tag": "soxphuwu#0",
+            "nick": "soxphuwu",
+            "status": "ONLINE",
+            "bot": false,
+            "roles": [
+                "Member"
+            ],
+            "joined_at": "2025-03-17",
+            "avatar_url": "https://cdn.discordapp.com/avatars/1349565224172388372/88108b2ac762c356b9f1e134fe32060c.png"
+        }
+    ]
+}
