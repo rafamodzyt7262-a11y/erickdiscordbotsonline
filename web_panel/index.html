@@ -18,6 +18,10 @@
     <div class="ambient-glow glow-1"></div>
     <div class="ambient-glow glow-2"></div>
     <div class="ambient-glow glow-3"></div>
+    <div class="ambient-glow glow-4"></div>
+
+    <!-- Canvas interactivo de partículas neon y blur -->
+    <canvas id="particles-bg-canvas" class="particles-canvas"></canvas>
 
     <div class="app-layout">
         <!-- SIDEBAR -->
@@ -888,6 +892,41 @@
             <button class="btn-close-modal" id="btn-close-image-modal" style="position:absolute; top:-36px; right:0; font-size:24px; color:#fff;"><i class="fa-solid fa-xmark"></i></button>
             <img src="" id="image-zoom-img" style="max-width:90vw; max-height:85vh; border-radius:12px; border:1px solid rgba(255,255,255,0.2); box-shadow:0 10px 40px rgba(0,0,0,0.8);" alt="Foto en grande">
         </div>
+    </div>
+
+    <!-- WIDGET FLOTANTE: REPRODUCTOR DE MÚSICA XXXTENTACION (AUDIO HD) -->
+    <div class="music-floating-dock" id="music-player-dock">
+        <div class="music-dock-inner">
+            <div class="music-cover-box">
+                <img src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=200&auto=format&fit=crop" id="music-album-cover" class="music-cover-img" alt="XXXTENTACION">
+                <div class="music-disc-overlay"></div>
+            </div>
+            <div class="music-details">
+                <div class="music-track-title" id="music-track-title">XXXTENTACION - Moonlight</div>
+                <div class="music-artist-sub">
+                    <span class="music-badge-genre"><i class="fa-solid fa-compact-disc"></i> XXXTENTACION</span>
+                    <span class="music-credits-tag">SHADOW BLOCK • rafamodzyt</span>
+                </div>
+                <!-- Mini barras de ecualizador animadas -->
+                <div class="music-mini-eq" id="music-mini-eq">
+                    <span class="eq-bar bar-1"></span>
+                    <span class="eq-bar bar-2"></span>
+                    <span class="eq-bar bar-3"></span>
+                    <span class="eq-bar bar-4"></span>
+                    <span class="eq-bar bar-5"></span>
+                </div>
+            </div>
+            <div class="music-controls">
+                <button type="button" class="btn-music-ctrl" id="btn-music-prev" title="Canción Anterior"><i class="fa-solid fa-backward-step"></i></button>
+                <button type="button" class="btn-music-play" id="btn-music-play" title="Reproducir / Pausar"><i class="fa-solid fa-play" id="icon-music-play"></i></button>
+                <button type="button" class="btn-music-ctrl" id="btn-music-next" title="Siguiente Canción"><i class="fa-solid fa-forward-step"></i></button>
+            </div>
+            <div class="music-volume-box">
+                <i class="fa-solid fa-volume-high text-cyan" id="icon-music-vol"></i>
+                <input type="range" min="0" max="100" value="80" class="music-vol-slider" id="slider-music-volume">
+            </div>
+        </div>
+        <audio id="xxtentacion-audio" preload="auto"></audio>
     </div>
 
     <!-- AUDIO ELEMENT FOR SOUNDBOARD EFFECTS -->

@@ -15,6 +15,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initMembersGrid();
     initWallpapers();
     initAlertsPreview();
+    initParticlesBackground();
+    initXXXTENTACIONPlayer();
 });
 
 /* =========================================================
@@ -1146,3 +1148,263 @@ function playTone(freq, duration) {
         osc.stop(audioCtx.currentTime + duration);
     } catch (e) {}
 }
+
+/* =========================================================
+   12. BACKGROUND INTERACTIVO DE PARTÍCULAS NEON & BLUR
+   ========================================================= */
+function initParticlesBackground() {
+    const canvas = document.getElementById('particles-bg-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+
+    let w = canvas.width = window.innerWidth;
+    let h = canvas.height = window.innerHeight;
+
+    window.addEventListener('resize', () => {
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight;
+    });
+
+    const particlesCount = 55;
+    const colors = [
+        'rgba(0, 240, 255, ',
+        'rgba(88, 101, 242, ',
+        'rgba(255, 0, 85, ',
+        'rgba(155, 89, 182, ',
+        'rgba(46, 204, 113, '
+    ];
+
+    const particles = [];
+    for (let i = 0; i < particlesCount; i++) {
+        particles.push({
+            x: Math.random() * w,
+            y: Math.random() * h,
+            vx: (Math.random() - 0.5) * 0.7,
+            vy: (Math.random() - 0.5) * 0.7,
+            radius: Math.random() * 2.5 + 1.2,
+            colorBase: colors[Math.floor(Math.random() * colors.length)],
+            alpha: Math.random() * 0.5 + 0.3
+        });
+    }
+
+    let mouse = { x: -1000, y: -1000 };
+    window.addEventListener('mousemove', (e) => {
+        mouse.x = e.clientX;
+        mouse.y = e.clientY;
+    });
+
+    function render() {
+        ctx.clearRect(0, 0, w, h);
+
+        for (let i = 0; i < particles.length; i++) {
+            const p = particles[i];
+            p.x += p.vx;
+            p.y += p.vy;
+
+            if (p.x < 0) p.x = w;
+            if (p.x > w) p.x = 0;
+            if (p.y < 0) p.y = h;
+            if (p.y > h) p.y = 0;
+
+            // Interacción suave con el mouse
+            const dx = mouse.x - p.x;
+            const dy = mouse.y - p.y;
+            const distMouse = Math.sqrt(dx * dx + dy * dy);
+            if (distMouse < 100) {
+                p.x -= dx * 0.02;
+                p.y -= dy * 0.02;
+            }
+
+            // Dibujar partícula con resplandor
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+            ctx.fillStyle = p.colorBase + p.alpha + ')';
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = p.colorBase + '0.8)';
+            ctx.fill();
+
+            // Conectar partículas cercanas con líneas suaves
+            for (let j = i + 1; j < particles.length; j++) {
+                const p2 = particles[j];
+                const dxx = p.x - p2.x;
+                const dyy = p.y - p2.y;
+                const dist = Math.sqrt(dxx * dxx + dyy * dyy);
+
+                if (dist < 120) {
+                    const lineAlpha = (1 - dist / 120) * 0.15;
+                    ctx.beginPath();
+                    ctx.moveTo(p.x, p.y);
+                    ctx.lineTo(p2.x, p2.y);
+                    ctx.strokeStyle = p.colorBase + lineAlpha + ')';
+                    ctx.lineWidth = 0.8;
+                    ctx.shadowBlur = 0;
+                    ctx.stroke();
+                }
+            }
+        }
+
+        requestAnimationFrame(render);
+    }
+    render();
+}
+
+/* =========================================================
+   13. REPRODUCTOR DE MÚSICA XXXTENTACION (AUDIO HD)
+   ========================================================= */
+const XXXTENTACION_PLAYLIST = [
+    {
+        title: "XXXTENTACION - Moonlight",
+        album: "? (Deluxe)",
+        cover: "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?q=80&w=200&auto=format&fit=crop",
+        url: "https://archive.org/download/xxxtentacion-moonlight/XXXTENTACION%20-%20Moonlight%20%28Official%20Music%20Video%29.mp3",
+        bpm: 128
+    },
+    {
+        title: "XXXTENTACION - SAD!",
+        album: "? (Deluxe)",
+        cover: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=200&auto=format&fit=crop",
+        url: "https://archive.org/download/xxxtentacion-sad_202105/XXXTENTACION%20-%20SAD%21.mp3",
+        bpm: 75
+    },
+    {
+        title: "XXXTENTACION - Jocelyn Flores",
+        album: "17",
+        cover: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=200&auto=format&fit=crop",
+        url: "https://archive.org/download/xxxtentacion-jocelyn-flores/XXXTENTACION%20-%20Jocelyn%20Flores%20%28Audio%29.mp3",
+        bpm: 120
+    },
+    {
+        title: "XXXTENTACION - Hope",
+        album: "?",
+        cover: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=200&auto=format&fit=crop",
+        url: "https://archive.org/download/xxxtentacion-hope/XXXTENTACION%20-%20Hope.mp3",
+        bpm: 146
+    },
+    {
+        title: "XXXTENTACION - Changes",
+        album: "?",
+        cover: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=200&auto=format&fit=crop",
+        url: "https://archive.org/download/xxxtentacion-changes/XXXTENTACION%20-%20changes.mp3",
+        bpm: 65
+    }
+];
+
+function initXXXTENTACIONPlayer() {
+    const audio = document.getElementById('xxtentacion-audio');
+    const playBtn = document.getElementById('btn-music-play');
+    const prevBtn = document.getElementById('btn-music-prev');
+    const nextBtn = document.getElementById('btn-music-next');
+    const titleEl = document.getElementById('music-track-title');
+    const coverEl = document.getElementById('music-album-cover');
+    const volSlider = document.getElementById('slider-music-volume');
+    const iconPlay = document.getElementById('icon-music-play');
+    const eqBox = document.getElementById('music-mini-eq');
+
+    if (!audio || !playBtn) return;
+
+    let currentTrackIdx = 0;
+    let isPlaying = false;
+
+    function loadTrack(idx) {
+        currentTrackIdx = (idx + XXXTENTACION_PLAYLIST.length) % XXXTENTACION_PLAYLIST.length;
+        const track = XXXTENTACION_PLAYLIST[currentTrackIdx];
+        if (titleEl) titleEl.textContent = track.title;
+        if (coverEl) coverEl.src = track.cover;
+        audio.src = track.url;
+        audio.volume = (volSlider ? volSlider.value : 80) / 100;
+    }
+
+    loadTrack(0);
+
+    async function togglePlay() {
+        if (!isPlaying) {
+            try {
+                await audio.play();
+                isPlaying = true;
+                iconPlay.className = 'fa-solid fa-pause';
+                if (eqBox) eqBox.classList.add('playing');
+                if (coverEl) coverEl.classList.add('spinning');
+            } catch (err) {
+                console.log("Audio autoplay / stream blocked, usando generador ambiental.");
+                playAmbientXBeats();
+                isPlaying = true;
+                iconPlay.className = 'fa-solid fa-pause';
+                if (eqBox) eqBox.classList.add('playing');
+                if (coverEl) coverEl.classList.add('spinning');
+            }
+        } else {
+            audio.pause();
+            stopAmbientXBeats();
+            isPlaying = false;
+            iconPlay.className = 'fa-solid fa-play';
+            if (eqBox) eqBox.classList.remove('playing');
+            if (coverEl) coverEl.classList.remove('spinning');
+        }
+    }
+
+    playBtn.addEventListener('click', togglePlay);
+
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+            loadTrack(currentTrackIdx - 1);
+            if (isPlaying) audio.play().catch(() => {});
+        });
+    }
+
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+            loadTrack(currentTrackIdx + 1);
+            if (isPlaying) audio.play().catch(() => {});
+        });
+    }
+
+    audio.addEventListener('ended', () => {
+        loadTrack(currentTrackIdx + 1);
+        audio.play().catch(() => {});
+    });
+
+    if (volSlider) {
+        volSlider.addEventListener('input', (e) => {
+            audio.volume = e.target.value / 100;
+        });
+    }
+
+    // Fallback sintetizador armónico Trap / Lofi estilo Moonlight si la red externa tarda
+    let synthLoopTimer = null;
+    let synthCtx = null;
+
+    function playAmbientXBeats() {
+        try {
+            if (!synthCtx) synthCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const chords = [
+                [261.63, 329.63, 392.00], // C
+                [220.00, 261.63, 329.63], // Am
+                [174.61, 220.00, 261.63], // F
+                [196.00, 246.94, 293.66]  // G
+            ];
+            let chordIdx = 0;
+            synthLoopTimer = setInterval(() => {
+                if (!isPlaying) return;
+                const c = chords[chordIdx % chords.length];
+                chordIdx++;
+                c.forEach(f => {
+                    const osc = synthCtx.createOscillator();
+                    const g = synthCtx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(f, synthCtx.currentTime);
+                    g.gain.setValueAtTime(0.04, synthCtx.currentTime);
+                    g.gain.exponentialRampToValueAtTime(0.0001, synthCtx.currentTime + 1.8);
+                    osc.connect(g);
+                    g.connect(synthCtx.destination);
+                    osc.start();
+                    osc.stop(synthCtx.currentTime + 1.8);
+                });
+            }, 1800);
+        } catch(e) {}
+    }
+
+    function stopAmbientXBeats() {
+        if (synthLoopTimer) clearInterval(synthLoopTimer);
+    }
+}
+
