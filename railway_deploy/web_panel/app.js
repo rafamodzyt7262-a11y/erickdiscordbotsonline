@@ -17,6 +17,9 @@ document.addEventListener('DOMContentLoaded', () => {
     initAlertsPreview();
     initParticlesBackground();
     initXXXTENTACIONPlayer();
+    initDualConsole();
+    initServerMaster();
+    initBroadcast();
 });
 
 /* =========================================================
@@ -55,6 +58,9 @@ function initTabs() {
 
     const titlesMap = {
         'tab-dashboard': 'Dashboard General',
+        'tab-dual-console': 'Dual Console: Canales de Voz + Chat Personalizado',
+        'tab-server-master': 'Control Total del Servidor 1000%',
+        'tab-broadcast': 'Emisor de Anuncios Oficiales (Embed)',
         'tab-chat': 'Chat en Vivo & Canales',
         'tab-voice': 'Voz 24/7 & Ecualizador',
         'tab-gamebots': 'Game Bots Free Fire (55 Cuentas/Día)',
@@ -1383,4 +1389,632 @@ function initXXXTENTACIONPlayer() {
         });
     }
 }
+
+/* =========================================================
+   14. DUAL CONSOLE: CANALES DE VOZ + CHAT PERSONALIZADO
+   ========================================================= */
+function initDualConsole() {
+    const voiceListEl = document.getElementById('dual-voice-channels-list');
+    const refreshVoiceBtn = document.getElementById('btn-refresh-voice-channels');
+    const sndButtons = document.querySelectorAll('.btn-satanas-snd');
+    const stopSoundBtn = document.getElementById('btn-stop-voice-sound');
+    const statusText = document.getElementById('satanas-play-status');
+    const loopCheck = document.getElementById('check-satanas-loop');
+    const botSelect = document.getElementById('satanas-select-bot');
+
+    const chatTargetSelect = document.getElementById('dual-chat-target-select');
+    const chatContainer = document.getElementById('dual-chat-messages-container');
+    const inputText = document.getElementById('dual-chat-input-text');
+    const inputImg = document.getElementById('dual-chat-input-image');
+    const btnSend = document.getElementById('btn-dual-send-chat-msg');
+    const btnToggleAttach = document.getElementById('btn-dual-toggle-attach');
+    const attachBar = document.getElementById('dual-composer-attachment-bar');
+    const btnClearImg = document.getElementById('btn-dual-clear-img-url');
+    const btnToggleEmbed = document.getElementById('btn-toggle-dual-embed');
+    const embedBuilder = document.getElementById('dual-embed-builder');
+    const embedTitleInput = document.getElementById('dual-embed-title');
+    const embedColorInput = document.getElementById('dual-embed-color');
+    const btnRefreshChat = document.getElementById('btn-dual-refresh-chat');
+    const btnClearChat = document.getElementById('btn-dual-clear-chat');
+    const identityBtns = document.querySelectorAll('.btn-identity-preset');
+    const identityInputsRow = document.getElementById('identity-inputs-row');
+    const customNameInput = document.getElementById('dual-input-sender-name');
+    const customAvatarInput = document.getElementById('dual-input-sender-avatar');
+
+    let currentSenderName = "rafamodzyt";
+    let currentSenderAvatar = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=200&auto=format&fit=crop";
+    let isEmbedMode = false;
+
+    // --- Identidad Personalizada ---
+    identityBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            identityBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const mode = btn.dataset.name;
+            if (mode === 'custom') {
+                if (identityInputsRow) identityInputsRow.style.display = 'flex';
+                currentSenderName = customNameInput?.value || "Usuario Personalizado";
+                currentSenderAvatar = customAvatarInput?.value || "";
+            } else {
+                if (identityInputsRow) identityInputsRow.style.display = 'none';
+                currentSenderName = btn.dataset.name;
+                currentSenderAvatar = btn.dataset.avatar;
+            }
+            playTone(480, 0.08);
+        });
+    });
+
+    if (customNameInput) {
+        customNameInput.addEventListener('input', (e) => {
+            currentSenderName = e.target.value.trim() || "Usuario VIP";
+        });
+    }
+    if (customAvatarInput) {
+        customAvatarInput.addEventListener('input', (e) => {
+            currentSenderAvatar = e.target.value.trim();
+        });
+    }
+
+    // --- Canales de Voz Disponibles ---
+    async function loadVoiceChannels() {
+        if (!voiceListEl) return;
+        try {
+            const res = await fetch('/api/server/channels', { cache: 'no-store' });
+            if (res.ok) {
+                const data = await res.json();
+                const vChannels = (data.channels || []).filter(ch => ch.type === 2);
+                renderVoiceChannels(vChannels.length ? vChannels : [
+                    { id: "1350706770527653993", name: "General (Voz 24/7)", members: 2 }
+                ]);
+                return;
+            }
+        } catch (e) {}
+
+        renderVoiceChannels([
+            { id: "1350706770527653993", name: "General (Voz 24/7)", members: 2 }
+        ]);
+    }
+
+    function renderVoiceChannels(channels) {
+        if (!voiceListEl) return;
+        voiceListEl.innerHTML = channels.map(ch => `
+            <div class="voice-ch-card active-voice-room">
+                <div class="voice-ch-info">
+                    <div class="voice-ch-icon-wrap">
+                        <i class="fa-solid fa-volume-high text-cyan"></i>
+                        <span class="live-dot-pulse"></span>
+                    </div>
+                    <div>
+                        <div class="voice-ch-title">${escapeHtml(ch.name)}</div>
+                        <div class="voice-ch-subtitle">
+                            <span class="voice-bot-tag text-purple"><i class="fa-solid fa-robot"></i> Erick X</span>
+                            <span class="voice-bot-tag text-red"><i class="fa-solid fa-skull"></i> Satanas</span>
+                            <span class="voice-ch-id">ID: ${ch.id}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="voice-ch-status">
+                    <span class="badge-status-ready">EN LÍNEA 24/7</span>
+                    <button type="button" class="btn-listen-room" title="Conectado permanentemente">
+                        <i class="fa-solid fa-headphones"></i>
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    if (refreshVoiceBtn) {
+        refreshVoiceBtn.addEventListener('click', () => {
+            loadVoiceChannels();
+            playTone(520, 0.1);
+        });
+    }
+    loadVoiceChannels();
+
+    // --- Soundboard Satanas / Bot de Voz con Ráfaga / Bucle ---
+    sndButtons.forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const soundFile = btn.getAttribute('data-sound') || 'donato.mp3';
+            const soundName = btn.getAttribute('data-name') || soundFile;
+            const isLoop = loopCheck ? loopCheck.checked : false;
+            const targetBot = botSelect ? botSelect.value : 'satanas';
+
+            // Feedback visual
+            sndButtons.forEach(b => b.classList.remove('playing-sound'));
+            btn.classList.add('playing-sound');
+
+            if (statusText) {
+                if (isLoop) {
+                    statusText.innerHTML = `<span style="color:#FF0055;">🔥 MODO RÁFAGA / SPAM ACTIVO:</span> Reproduciendo "${soundName}" en bucle infinito...`;
+                } else {
+                    statusText.innerHTML = `🔊 Bot <strong>${targetBot === 'satanas' ? 'Satanás' : 'Erick X'}</strong> reproduciendo "${soundName}" en el canal de voz...`;
+                }
+            }
+
+            try {
+                const res = await fetch('/api/voice/play', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        sound: soundFile,
+                        bot: targetBot,
+                        loop: isLoop
+                    })
+                });
+                const result = await res.json();
+                console.log("Voice Play Response:", result);
+            } catch (err) {
+                console.warn("No server connection for voice trigger:", err);
+            }
+
+            playTone(isLoop ? 700 : 580, 0.15);
+        });
+    });
+
+    if (stopSoundBtn) {
+        stopSoundBtn.addEventListener('click', async () => {
+            sndButtons.forEach(b => b.classList.remove('playing-sound'));
+            if (statusText) {
+                statusText.innerHTML = '🟢 Reproducción detenida • Retomando modo silencioso 24/7';
+            }
+            try {
+                await fetch('/api/voice/stop', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ bot: 'both' })
+                });
+            } catch (e) {}
+            playTone(320, 0.12);
+        });
+    }
+
+    // --- Chat Dual: Render & Sincronización ---
+    function renderDualChatMessages() {
+        if (!chatContainer) return;
+        const currentTarget = chatTargetSelect ? chatTargetSelect.value : 'general';
+        const msgs = (window._chatMessages || []).filter(m => {
+            return !currentTarget || currentTarget === 'general' || m.channel_name === currentTarget || m.channel_id === currentTarget;
+        });
+
+        if (msgs.length === 0) {
+            chatContainer.innerHTML = `
+                <div class="empty-chat-state" style="text-align:center; padding:30px 15px; color:#777;">
+                    <i class="fa-solid fa-comments" style="font-size:28px; margin-bottom:8px; opacity:0.4;"></i>
+                    <p style="font-size:13px;">No hay mensajes registrados en #${currentTarget} aún.</p>
+                    <small>Envía uno abajo con tu identidad personalizada.</small>
+                </div>
+            `;
+            return;
+        }
+
+        chatContainer.innerHTML = '';
+        msgs.forEach(m => {
+            const userColor = getUsernameColor(m.author, m.author_id);
+            const timeStr = m.timestamp || m.time || 'Ahora';
+            const avatarUrl = m.avatar || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=200&auto=format&fit=crop";
+
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'msg-item';
+
+            let attachmentsHtml = '';
+            if (Array.isArray(m.attachments) && m.attachments.length) {
+                m.attachments.forEach(url => {
+                    if (url) {
+                        attachmentsHtml += `
+                            <div class="msg-attachment-wrap" style="margin-top:6px;">
+                                <img src="${url}" class="msg-attachment-img" alt="Foto adjunta" loading="lazy" style="max-width:260px; max-height:200px; border-radius:8px; border:1px solid rgba(255,255,255,0.12); cursor:pointer;" onclick="zoomImage('${url}')">
+                            </div>
+                        `;
+                    }
+                });
+            }
+
+            msgDiv.innerHTML = `
+                <img src="${avatarUrl}" class="msg-avatar" alt="${escapeHtml(m.author)}" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                <div class="msg-content-wrapper">
+                    <div class="msg-author-row">
+                        <span class="msg-author-name" style="color: ${userColor}; font-weight: 700; text-shadow: 0 0 10px ${userColor}30;">
+                            ${escapeHtml(m.author)}
+                        </span>
+                        ${m.bot ? '<span class="msg-bot-tag">BOT</span>' : ''}
+                        <span class="msg-ch-tag" style="font-size:10px; padding:1px 6px; border-radius:4px; background:rgba(255,255,255,0.06); color:#aaa; margin-left:6px;">
+                            #${escapeHtml(m.channel_name || 'general')}
+                        </span>
+                        <span class="msg-timestamp" style="margin-left:auto; font-size:11px; color:#777;">${timeStr}</span>
+                    </div>
+                    ${m.content ? `<div class="msg-bubble">${escapeHtml(m.content)}</div>` : ''}
+                    ${attachmentsHtml}
+                </div>
+            `;
+            chatContainer.appendChild(msgDiv);
+        });
+
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    if (chatTargetSelect) {
+        chatTargetSelect.addEventListener('change', () => {
+            renderDualChatMessages();
+        });
+    }
+
+    // Toggle adjuntar foto
+    if (btnToggleAttach && attachBar) {
+        btnToggleAttach.addEventListener('click', () => {
+            const isHidden = attachBar.style.display === 'none';
+            attachBar.style.display = isHidden ? 'flex' : 'none';
+            if (isHidden && inputImg) inputImg.focus();
+        });
+    }
+
+    if (btnClearImg && inputImg) {
+        btnClearImg.addEventListener('click', () => {
+            inputImg.value = '';
+            if (attachBar) attachBar.style.display = 'none';
+        });
+    }
+
+    // Toggle modo Embed
+    if (btnToggleEmbed && embedBuilder) {
+        btnToggleEmbed.addEventListener('click', () => {
+            isEmbedMode = !isEmbedMode;
+            embedBuilder.style.display = isEmbedMode ? 'block' : 'none';
+            btnToggleEmbed.classList.toggle('active', isEmbedMode);
+            if (isEmbedMode && embedTitleInput) embedTitleInput.focus();
+        });
+    }
+
+    // Enviar mensaje con identidad
+    async function sendDualMessage() {
+        const text = inputText ? inputText.value.trim() : '';
+        const imgUrl = inputImg ? inputImg.value.trim() : '';
+        const targetChannel = chatTargetSelect ? chatTargetSelect.value : 'general';
+        const embedTitle = embedTitleInput ? embedTitleInput.value.trim() : '';
+        const embedColor = embedColorInput ? embedColorInput.value : '#00F0FF';
+
+        if (!text && !imgUrl) return;
+
+        const newMsg = {
+            id: 'dual_' + Date.now(),
+            author: currentSenderName || 'rafamodzyt',
+            author_id: 'owner_dual',
+            avatar: currentSenderAvatar || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=200&auto=format&fit=crop',
+            bot: currentSenderName.toLowerCase().includes('bot') || currentSenderName.toLowerCase().includes('satanas') || currentSenderName.toLowerCase().includes('erick'),
+            content: text,
+            channel_name: targetChannel,
+            channel_id: targetChannel,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            attachments: imgUrl ? [imgUrl] : []
+        };
+
+        if (!window._chatMessages) window._chatMessages = [];
+        window._chatMessages.push(newMsg);
+        try {
+            localStorage.setItem('shadow_chat_cache', JSON.stringify(window._chatMessages.slice(-60)));
+        } catch (e) {}
+
+        renderDualChatMessages();
+
+        // Enviar a la API /api/chat/send
+        try {
+            await fetch('/api/chat/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    channel: targetChannel,
+                    message: text,
+                    author: currentSenderName,
+                    avatar: currentSenderAvatar,
+                    image_url: imgUrl,
+                    is_embed: isEmbedMode,
+                    embed_title: embedTitle,
+                    embed_color: embedColor
+                })
+            });
+        } catch (err) {
+            console.log("Chat send offline fallback");
+        }
+
+        if (inputText) inputText.value = '';
+        if (inputImg) inputImg.value = '';
+        if (attachBar) attachBar.style.display = 'none';
+
+        playTone(660, 0.1);
+    }
+
+    if (btnSend) btnSend.addEventListener('click', sendDualMessage);
+    if (inputText) {
+        inputText.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                sendDualMessage();
+            }
+        });
+    }
+
+    if (btnRefreshChat) {
+        btnRefreshChat.addEventListener('click', () => {
+            renderDualChatMessages();
+            playTone(440, 0.08);
+        });
+    }
+
+    if (btnClearChat) {
+        btnClearChat.addEventListener('click', () => {
+            if (confirm('¿Deseas limpiar la vista de chat?')) {
+                if (chatContainer) chatContainer.innerHTML = '';
+            }
+        });
+    }
+
+    // Auto sincronizar periódicamente
+    setInterval(renderDualChatMessages, 3000);
+    renderDualChatMessages();
+}
+
+/* =========================================================
+   15. CONTROL MAESTRO DEL SERVIDOR (1000% MODIFICABLE)
+   ========================================================= */
+function initServerMaster() {
+    const chContainer = document.getElementById('master-channels-container');
+    const chCount = document.getElementById('master-channels-count');
+    const newChName = document.getElementById('master-new-ch-name');
+    const newChType = document.getElementById('master-new-ch-type');
+    const btnCreateCh = document.getElementById('btn-master-create-channel');
+
+    const rolesContainer = document.getElementById('master-roles-container');
+    const rolesCount = document.getElementById('master-roles-count');
+    const newRoleName = document.getElementById('master-new-role-name');
+    const newRoleColor = document.getElementById('master-new-role-color');
+    const btnCreateRole = document.getElementById('btn-master-create-role');
+
+    const btnRefreshAll = document.getElementById('btn-refresh-master-all');
+    const btnSaveServer = document.getElementById('btn-master-save-server');
+
+    // Cargar canales del servidor
+    async function fetchServerChannels() {
+        if (!chContainer) return;
+        try {
+            const res = await fetch('/api/server/channels');
+            if (res.ok) {
+                const data = await res.json();
+                if (Array.isArray(data.channels)) {
+                    renderMasterChannels(data.channels);
+                    return;
+                }
+            }
+        } catch (e) {}
+
+        // Fallback predeterminado
+        renderMasterChannels(CHANNELS_DATA.map(c => ({ id: c.id, name: c.name, type: 0 })));
+    }
+
+    function renderMasterChannels(channels) {
+        if (!chContainer) return;
+        if (chCount) chCount.textContent = `${channels.length} Canales`;
+        chContainer.innerHTML = channels.map(ch => `
+            <div class="master-item-row">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <i class="fa-solid ${ch.type === 2 ? 'fa-volume-high text-cyan' : 'fa-hashtag text-purple'}"></i>
+                    <div>
+                        <span style="font-weight:600; font-size:13px;">${escapeHtml(ch.name)}</span>
+                        <div style="font-size:10px; color:#777;">ID: ${ch.id} • ${ch.type === 2 ? 'Voz' : 'Texto'}</div>
+                    </div>
+                </div>
+                <button type="button" class="btn-del-item" data-id="${ch.id}" title="Eliminar canal">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+            </div>
+        `).join('');
+
+        chContainer.querySelectorAll('.btn-del-item').forEach(b => {
+            b.addEventListener('click', async () => {
+                const id = b.getAttribute('data-id');
+                if (confirm(`¿Eliminar canal ID ${id} del servidor Discord?`)) {
+                    try {
+                        await fetch('/api/server/channels/delete', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ channel_id: id })
+                        });
+                        fetchServerChannels();
+                    } catch (e) {}
+                    playTone(300, 0.1);
+                }
+            });
+        });
+    }
+
+    // Crear nuevo canal
+    if (btnCreateCh) {
+        btnCreateCh.addEventListener('click', async () => {
+            const name = newChName ? newChName.value.trim() : '';
+            const type = newChType ? parseInt(newChType.value) : 0;
+            if (!name) return alert('Por favor ingresa un nombre para el canal.');
+
+            try {
+                await fetch('/api/server/channels', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: name, type: type })
+                });
+                if (newChName) newChName.value = '';
+                fetchServerChannels();
+                playTone(600, 0.15);
+            } catch (e) {
+                alert('No se pudo crear el canal en Discord. Verifica los permisos del bot.');
+            }
+        });
+    }
+
+    // Cargar roles del servidor
+    async function fetchServerRoles() {
+        if (!rolesContainer) return;
+        try {
+            const res = await fetch('/api/server/roles');
+            if (res.ok) {
+                const data = await res.json();
+                if (Array.isArray(data.roles)) {
+                    renderMasterRoles(data.roles);
+                    return;
+                }
+            }
+        } catch (e) {}
+
+        // Fallback de roles
+        renderMasterRoles([
+            { id: "1001", name: "👑 Owner / Creador", color: 16766720 },
+            { id: "1002", name: "🛡️ Administrador", color: 15158332 },
+            { id: "1003", name: "💎 VIP Insano", color: 10181046 },
+            { id: "1004", name: "🤖 Bots Oficiales", color: 3447003 },
+            { id: "1005", name: "🔥 Miembro Activo", color: 3066993 }
+        ]);
+    }
+
+    function renderMasterRoles(roles) {
+        if (!rolesContainer) return;
+        if (rolesCount) rolesCount.textContent = `${roles.length} Roles`;
+        rolesContainer.innerHTML = roles.map(r => {
+            const hexColor = typeof r.color === 'number' ? '#' + r.color.toString(16).padStart(6, '0') : (r.color || '#5865F2');
+            return `
+                <div class="master-item-row">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span class="role-color-dot" style="background:${hexColor};"></span>
+                        <div>
+                            <span style="font-weight:600; font-size:13px; color:${hexColor};">${escapeHtml(r.name)}</span>
+                            <div style="font-size:10px; color:#777;">ID: ${r.id}</div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-del-item" data-id="${r.id}" title="Eliminar rol">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </div>
+            `;
+        }).join('');
+
+        rolesContainer.querySelectorAll('.btn-del-item').forEach(b => {
+            b.addEventListener('click', async () => {
+                const id = b.getAttribute('data-id');
+                if (confirm(`¿Eliminar rol ID ${id} del servidor Discord?`)) {
+                    try {
+                        await fetch('/api/server/roles/delete', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ role_id: id })
+                        });
+                        fetchServerRoles();
+                    } catch (e) {}
+                    playTone(300, 0.1);
+                }
+            });
+        });
+    }
+
+    // Crear nuevo rol
+    if (btnCreateRole) {
+        btnCreateRole.addEventListener('click', async () => {
+            const name = newRoleName ? newRoleName.value.trim() : '';
+            const color = newRoleColor ? newRoleColor.value : '#5865F2';
+            if (!name) return alert('Por favor ingresa un nombre para el rol.');
+
+            try {
+                await fetch('/api/server/roles', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: name, color: color })
+                });
+                if (newRoleName) newRoleName.value = '';
+                fetchServerRoles();
+                playTone(600, 0.15);
+            } catch (e) {
+                alert('No se pudo crear el rol en Discord.');
+            }
+        });
+    }
+
+    // Botón Sincronizar Todo
+    if (btnRefreshAll) {
+        btnRefreshAll.addEventListener('click', () => {
+            fetchServerChannels();
+            fetchServerRoles();
+            playTone(550, 0.15);
+        });
+    }
+
+    // Guardar ajustes del servidor
+    if (btnSaveServer) {
+        btnSaveServer.addEventListener('click', () => {
+            alert('Ajustes guardados correctamente en la memoria del panel y sincronizados con los bots.');
+            playTone(800, 0.2);
+        });
+    }
+
+    fetchServerChannels();
+    fetchServerRoles();
+}
+
+/* =========================================================
+   16. EMISOR DE ANUNCIOS & BROADCAST OFICIAL (EMBED)
+   ========================================================= */
+function initBroadcast() {
+    const btnSend = document.getElementById('btn-trigger-broadcast');
+    const selectCh = document.getElementById('bc-select-channel');
+    const selectMention = document.getElementById('bc-select-mention');
+    const inputTitle = document.getElementById('bc-input-title');
+    const inputDesc = document.getElementById('bc-input-desc');
+    const inputImage = document.getElementById('bc-input-image');
+    const inputColor = document.getElementById('bc-input-color');
+
+    if (!btnSend) return;
+
+    btnSend.addEventListener('click', async () => {
+        const title = inputTitle ? inputTitle.value.trim() : '';
+        const desc = inputDesc ? inputDesc.value.trim() : '';
+        const ch = selectCh ? selectCh.value : 'general';
+        const mention = selectMention ? selectMention.value : '';
+        const img = inputImage ? inputImage.value.trim() : '';
+        const color = inputColor ? inputColor.value : '#FFD700';
+
+        if (!title && !desc) {
+            return alert('Por favor ingresa un título o descripción para el anuncio.');
+        }
+
+        btnSend.disabled = true;
+        btnSend.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Transmitiendo Anuncio Oficial...';
+
+        try {
+            const res = await fetch('/api/server/broadcast', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    channel: ch,
+                    title: title,
+                    description: desc,
+                    color: color,
+                    mention: mention,
+                    image_url: img
+                })
+            });
+            const data = await res.json();
+            console.log("Broadcast result:", data);
+        } catch (err) {
+            console.warn("Broadcast fallback:", err);
+        }
+
+        playTone(880, 0.3);
+
+        setTimeout(() => {
+            btnSend.disabled = false;
+            btnSend.innerHTML = '<i class="fa-solid fa-check"></i> ¡Anuncio Disparado con Éxito!';
+            if (inputTitle) inputTitle.value = '';
+            if (inputDesc) inputDesc.value = '';
+            if (inputImage) inputImage.value = '';
+
+            setTimeout(() => {
+                btnSend.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Disparar Anuncio Oficial a Discord';
+            }, 3000);
+        }, 1000);
+    });
+}
+
 

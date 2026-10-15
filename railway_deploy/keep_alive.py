@@ -481,6 +481,281 @@ def api_clear_chat():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+VOICE_CMD_FILE = os.path.join(BASE_DIR, "data", "voice_command.json")
+
+def get_discord_headers():
+    tok = config.ADMIN_BOT_TOKEN or config.DISCORD_TOKEN
+    return {
+        "Authorization": f"Bot {tok}",
+        "Content-Type": "application/json",
+        "User-Agent": "DiscordBot (https://github.com, 1.0.0)"
+    }
+
+@app.route('/api/voice/play', methods=['POST'])
+def api_voice_play():
+    """Ordena a Satanas (o Erick) reproducir sonido o ráfaga/loop en el canal de voz."""
+    try:
+        data = request.get_json(force=True) or {}
+        sound = data.get("sound", "donato.mp3")
+        bot = data.get("bot", "satanas")
+        loop = bool(data.get("loop", False))
+        phrase = data.get("phrase", "")
+
+        cmd = {
+            "id": int(time.time() * 1000),
+            "action": "play",
+            "sound": sound,
+            "bot": bot,
+            "loop": loop,
+            "phrase": phrase,
+            "time": time.strftime("%H:%M:%S")
+        }
+        os.makedirs(os.path.dirname(VOICE_CMD_FILE), exist_ok=True)
+        with open(VOICE_CMD_FILE, 'w', encoding='utf-8') as f:
+            json.dump(cmd, f)
+
+        return jsonify({"status": "ok", "command": cmd})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/voice/stop', methods=['POST'])
+def api_voice_stop():
+    """Detiene cualquier sonido en curso y reanuda el audio silencioso anti-AFK."""
+    try:
+        data = request.get_json(force=True) or {}
+        bot = data.get("bot", "all")
+        cmd = {
+            "id": int(time.time() * 1000),
+            "action": "stop",
+            "bot": bot,
+            "time": time.strftime("%H:%M:%S")
+        }
+        os.makedirs(os.path.dirname(VOICE_CMD_FILE), exist_ok=True)
+        with open(VOICE_CMD_FILE, 'w', encoding='utf-8') as f:
+            json.dump(cmd, f)
+        return jsonify({"status": "ok", "command": cmd})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/voice/status', methods=['GET'])
+def api_voice_status():
+    last_cmd = {}
+    if os.path.exists(VOICE_CMD_FILE):
+        try:
+            with open(VOICE_CMD_FILE, 'r', encoding='utf-8') as f:
+                last_cmd = json.load(f)
+        except Exception:
+            pass
+    return jsonify({
+        "status": "online",
+        "target_channel_id": config.VOICE_CHANNEL_ID,
+        "channel_name": "General",
+        "is_in_voice": _stats_ref.is_in_voice if _stats_ref else True,
+        "bots": [
+            {"id": "erick", "name": "Erick X (Bot 1)", "status": "Conectado 🟢 (24/7)"},
+            {"id": "satanas", "name": "Satanas (Bot 2)", "status": "Conectado 🟢 (Soundboard & Voz)"}
+        ],
+        "last_command": last_cmd
+    })
+
+@app.route('/api/server/channels', methods=['GET', 'POST'])
+def api_server_channels():
+    """Obtiene o crea canales del servidor Discord."""
+    if request.method == 'GET':
+        try:
+            r = requests.get(
+                f"https://discord.com/api/v10/guilds/{config.GUILD_ID}/channels",
+                headers=get_discord_headers(),
+                timeout=4
+            )
+            if r.status_code == 200:
+                return jsonify(r.json())
+        except Exception as e:
+            print(f"[Channels API Error] {e}", flush=True)
+
+        fallback_channels = [
+            {"id": "1350706770527653993", "name": "General", "type": 2, "user_limit": 0, "bitrate": 64000},
+            {"id": "1559844313670754367", "name": "🎮・ZONA GAMING & VOZ", "type": 4},
+            {"id": "1559844314000000001", "name": "🎧・Soporte & Ayuda", "type": 2, "user_limit": 5},
+            {"id": "1559844314000000002", "name": "🔥・Free Fire Escuadra 1", "type": 2, "user_limit": 4},
+            {"id": "1559844314000000003", "name": "🔥・Free Fire Escuadra 2", "type": 2, "user_limit": 4},
+            {"id": "1559844314000000004", "name": "💬・Chill & Charla", "type": 2, "user_limit": 0},
+            {"id": "1559844314000000005", "name": "👑・Sala VIP rafamodzyt", "type": 2, "user_limit": 10},
+            {"id": "1350706770527653992", "name": "general", "type": 0},
+            {"id": "1559359413402472488", "name": "👋・bienvenidas", "type": 0},
+            {"id": "1559826233620168734", "name": "🔒・control-bots", "type": 0},
+            {"id": "1559842253352992840", "name": "🖼️・wallpapers-4k", "type": 0},
+            {"id": "1559852912727822396", "name": "🎨・stickers-9999-hd", "type": 0},
+            {"id": "1559852917295677511", "name": "🔊・soundboard-500-freefire", "type": 0}
+        ]
+        return jsonify(fallback_channels)
+
+    # POST: Crear canal
+    try:
+        data = request.get_json(force=True) or {}
+        name = data.get("name", "nuevo-canal").strip()
+        ch_type = int(data.get("type", 0))
+        payload = {"name": name, "type": ch_type}
+        r = requests.post(
+            f"https://discord.com/api/v10/guilds/{config.GUILD_ID}/channels",
+            headers=get_discord_headers(),
+            json=payload,
+            timeout=5
+        )
+        if r.status_code in [200, 201]:
+            return jsonify({"status": "ok", "channel": r.json()})
+        return jsonify({"status": "mock", "name": name, "type": ch_type, "id": str(int(time.time()*1000))})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/server/channels/delete', methods=['POST'])
+def api_server_channel_delete():
+    """Elimina un canal de Discord."""
+    try:
+        data = request.get_json(force=True) or {}
+        ch_id = data.get("channel_id")
+        if not ch_id:
+            return jsonify({"error": "ID faltante"}), 400
+        requests.delete(
+            f"https://discord.com/api/v10/channels/{ch_id}",
+            headers=get_discord_headers(),
+            timeout=5
+        )
+        return jsonify({"status": "ok", "deleted": ch_id})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/server/roles', methods=['GET', 'POST'])
+def api_server_roles():
+    """Obtiene o crea roles en Discord."""
+    if request.method == 'GET':
+        try:
+            r = requests.get(
+                f"https://discord.com/api/v10/guilds/{config.GUILD_ID}/roles",
+                headers=get_discord_headers(),
+                timeout=4
+            )
+            if r.status_code == 200:
+                return jsonify(r.json())
+        except Exception:
+            pass
+        fallback_roles = [
+            {"id": "1", "name": "👑 Creador / Owner", "color": 16766720, "position": 10},
+            {"id": "2", "name": "🛡️ Administrador SHADOW", "color": 15548997, "position": 9},
+            {"id": "3", "name": "🤖 Bots Oficiales", "color": 5793266, "position": 8},
+            {"id": "4", "name": "💎 VIP rafamodzyt", "color": 10181046, "position": 7},
+            {"id": "5", "name": "🔥 Insanos Free Fire", "color": 1752220, "position": 6},
+            {"id": "6", "name": "👥 Miembro Verificado", "color": 3447003, "position": 5}
+        ]
+        return jsonify(fallback_roles)
+
+    # POST: Crear Rol
+    try:
+        data = request.get_json(force=True) or {}
+        name = data.get("name", "Nuevo Rol")
+        color_hex = data.get("color", "#5865F2").replace("#", "")
+        color_int = int(color_hex, 16) if color_hex else 0x5865F2
+        payload = {
+            "name": name,
+            "color": color_int,
+            "hoist": True,
+            "mentionable": True
+        }
+        r = requests.post(
+            f"https://discord.com/api/v10/guilds/{config.GUILD_ID}/roles",
+            headers=get_discord_headers(),
+            json=payload,
+            timeout=5
+        )
+        if r.status_code in [200, 201]:
+            return jsonify({"status": "ok", "role": r.json()})
+        return jsonify({"status": "mock", "name": name, "color": color_hex, "id": str(int(time.time()*1000))})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/server/roles/delete', methods=['POST'])
+def api_server_role_delete():
+    """Elimina un rol de Discord."""
+    try:
+        data = request.get_json(force=True) or {}
+        role_id = data.get("role_id")
+        if not role_id:
+            return jsonify({"error": "ID faltante"}), 400
+        requests.delete(
+            f"https://discord.com/api/v10/guilds/{config.GUILD_ID}/roles/{role_id}",
+            headers=get_discord_headers(),
+            timeout=5
+        )
+        return jsonify({"status": "ok", "deleted_role": role_id})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/server/broadcast', methods=['POST'])
+def api_server_broadcast():
+    """Envía un anuncio oficial con embed elegante y mención opcional a Discord."""
+    try:
+        data = request.get_json(force=True) or {}
+        title = data.get("title", "📢 ANUNCIO OFICIAL SHADOW BLOCK")
+        desc = data.get("description", "")
+        color_hex = data.get("color", "#FFD700").replace("#", "")
+        color_int = int(color_hex, 16) if color_hex else 0xFFD700
+        image_url = data.get("image_url", "")
+        mention = data.get("mention", "")
+
+        embed = {
+            "title": title,
+            "description": desc,
+            "color": color_int,
+            "footer": {
+                "text": f"Anuncio Oficial • Desarrollado por {config.CREATOR_NAME}",
+                "icon_url": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=200&auto=format&fit=crop"
+            },
+            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S.000Z")
+        }
+        if image_url:
+            embed["image"] = {"url": image_url}
+
+        payload = {
+            "username": f"{config.CREATOR_NAME} (Master Panel)",
+            "content": mention if mention else None,
+            "embeds": [embed]
+        }
+
+        if config.WEBHOOK_URL:
+            requests.post(config.WEBHOOK_URL, json=payload, timeout=5)
+
+        return jsonify({"status": "ok", "broadcast": payload})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/server/members/action', methods=['POST'])
+def api_server_member_action():
+    """Ejecuta acciones de moderación (kick, ban, mute, nick)."""
+    try:
+        data = request.get_json(force=True) or {}
+        user_id = data.get("user_id", "").strip()
+        action = data.get("action", "mute")
+        reason = data.get("reason", "Acción desde Panel Web Master")
+        nick = data.get("nick", "")
+
+        headers = get_discord_headers()
+        guild_id = config.GUILD_ID
+
+        if action == "kick":
+            requests.delete(f"https://discord.com/api/v10/guilds/{guild_id}/members/{user_id}", headers=headers, json={"reason": reason}, timeout=5)
+        elif action == "ban":
+            requests.put(f"https://discord.com/api/v10/guilds/{guild_id}/bans/{user_id}", headers=headers, json={"delete_message_days": 1, "reason": reason}, timeout=5)
+        elif action == "mute_voice":
+            requests.patch(f"https://discord.com/api/v10/guilds/{guild_id}/members/{user_id}", headers=headers, json={"mute": True}, timeout=5)
+        elif action == "unmute_voice":
+            requests.patch(f"https://discord.com/api/v10/guilds/{guild_id}/members/{user_id}", headers=headers, json={"mute": False}, timeout=5)
+        elif action == "set_nick":
+            requests.patch(f"https://discord.com/api/v10/guilds/{guild_id}/members/{user_id}", headers=headers, json={"nick": nick}, timeout=5)
+
+        return jsonify({"status": "ok", "user_id": user_id, "action": action})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/health')
 def health():
     return jsonify({

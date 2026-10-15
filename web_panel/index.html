@@ -64,6 +64,23 @@
                     <span>Voz 24/7 & Ecualizador</span>
                     <span class="nav-tag tag-green">1M h</span>
                 </button>
+                <button class="nav-item" data-tab="tab-dual-console" id="btn-tab-dual-console">
+                    <i class="fa-solid fa-headset"></i>
+                    <span>Canales de Voz & Chat Dual</span>
+                    <span class="nav-tag tag-orange">DUAL</span>
+                </button>
+
+                <div class="nav-section">CONTROL MAESTRO 1000%</div>
+                <button class="nav-item" data-tab="tab-server-master" id="btn-tab-server-master">
+                    <i class="fa-solid fa-crown text-gold"></i>
+                    <span>Modificar Servidor Completo</span>
+                    <span class="nav-tag tag-gold">1000%</span>
+                </button>
+                <button class="nav-item" data-tab="tab-broadcast" id="btn-tab-broadcast">
+                    <i class="fa-solid fa-bullhorn text-purple"></i>
+                    <span>Anuncios & Broadcast Masivo</span>
+                    <span class="nav-tag tag-purple">EMBED</span>
+                </button>
 
                 <div class="nav-section">FREE FIRE & HERRAMIENTAS</div>
                 <button class="nav-item" data-tab="tab-gamebots" id="btn-tab-gamebots">
@@ -96,12 +113,12 @@
                     <span>Miembros en Cuadritos</span>
                 </button>
                 <button class="nav-item" data-tab="tab-alerts" id="btn-tab-alerts">
-                    <i class="fa-solid fa-bullhorn"></i>
-                    <span>Alertas & Anuncios</span>
+                    <i class="fa-solid fa-bell"></i>
+                    <span>Alertas VIP</span>
                 </button>
                 <button class="nav-item" data-tab="tab-moderation" id="btn-tab-moderation">
                     <i class="fa-solid fa-gavel"></i>
-                    <span>Moderación & Roles</span>
+                    <span>Moderación Rápida</span>
                 </button>
                 <button class="nav-item" data-tab="tab-tickets" id="btn-tab-tickets">
                     <i class="fa-solid fa-ticket"></i>
@@ -842,6 +859,328 @@
                             <div class="form-group">
                                 <label>Creador y Administrador:</label>
                                 <input type="text" class="custom-input" value="rafamodzyt" readonly>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 14. TAB CONSOLA DUAL: CANALES DE VOZ & CHAT PERSONALIZADO -->
+                <section class="tab-content" id="tab-dual-console">
+                    <div class="dual-console-grid">
+                        <!-- COLUMNA IZQUIERDA: CANALES DE VOZ & SOUNDBOARD CON SATANAS -->
+                        <div class="dual-col-voice glass-card">
+                            <div class="card-head">
+                                <div>
+                                    <h3><i class="fa-solid fa-headset text-orange"></i> Canales de Voz del Servidor</h3>
+                                    <p style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">
+                                        Monitoreo 24/7 y Soundboard de voz con el bot <b>Satanas</b>
+                                    </p>
+                                </div>
+                                <span class="badge-tag tag-green"><i class="fa-solid fa-signal"></i> 2 BOTS ACTIVOS</span>
+                            </div>
+
+                            <!-- Estado de los 2 bots en Voz -->
+                            <div class="bots-voice-status-box">
+                                <div class="bot-voice-pill">
+                                    <span class="status-led led-green"></span>
+                                    <span>🤖 <b>Erick X:</b> General (24/7)</span>
+                                </div>
+                                <div class="bot-voice-pill">
+                                    <span class="status-led led-green"></span>
+                                    <span>😈 <b>Satanas:</b> General (Soundboard)</span>
+                                </div>
+                            </div>
+
+                            <!-- Soundboard de Voz: Hablar con Satanas y Spam/Loop -->
+                            <div class="voice-satanas-box">
+                                <div class="voice-satanas-head">
+                                    <div style="display:flex; align-items:center; gap:8px;">
+                                        <i class="fa-solid fa-bullhorn text-gold"></i>
+                                        <strong>Soundboard en Llamada (Bot Satanas)</strong>
+                                    </div>
+                                    <span class="badge-tag tag-purple">FF AUDIO HD</span>
+                                </div>
+
+                                <div class="voice-satanas-controls">
+                                    <div class="satanas-bot-select">
+                                        <label>Bot que emite:</label>
+                                        <select id="satanas-select-bot" class="custom-select-sm">
+                                            <option value="satanas" selected>😈 Satanas (Bot 2)</option>
+                                            <option value="erick">🤖 Erick X (Bot 1)</option>
+                                            <option value="all">👥 Ambos Bots al Unísono</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="satanas-loop-toggle">
+                                        <label class="switch-sm">
+                                            <input type="checkbox" id="check-satanas-loop">
+                                            <span class="slider-sm round"></span>
+                                        </label>
+                                        <span style="font-size: 12px; font-weight:600; color: #FF3366;">
+                                            🔁 Modo Ráfaga Continua (Spam Loop)
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- Botones de Sonido Rápido -->
+                                <div class="satanas-sounds-grid">
+                                    <button type="button" class="btn-satanas-snd" data-sound="donato.mp3" data-name="Donato Headshot">
+                                        🎯 Donato Headshot
+                                    </button>
+                                    <button type="button" class="btn-satanas-snd" data-sound="donato.wav" data-name="Donato Risa">
+                                        😂 Donato Risa
+                                    </button>
+                                    <button type="button" class="btn-satanas-snd" data-sound="test_sound.mp3" data-name="Sonido VIP">
+                                        ⚡ Sonido VIP
+                                    </button>
+                                    <button type="button" class="btn-satanas-snd" data-sound="donato.mp3" data-name="Zelika Insano">
+                                        🔥 Zelika 360°
+                                    </button>
+                                    <button type="button" class="btn-satanas-snd" data-sound="donato.mp3" data-name="Aimbot Hacker">
+                                        🤖 Aimbot Hacker
+                                    </button>
+                                    <button type="button" class="btn-satanas-snd" data-sound="donato.mp3" data-name="Booyah Master">
+                                        🏆 Booyah Master
+                                    </button>
+                                </div>
+
+                                <div class="satanas-actions-row">
+                                    <button type="button" class="btn-stop-satanas" id="btn-stop-voice-sound">
+                                        <i class="fa-solid fa-stop"></i> Detener Todos los Sonidos
+                                    </button>
+                                    <span id="satanas-play-status" class="satanas-status-text">🟢 Listo para hablar en voz</span>
+                                </div>
+                            </div>
+
+                            <!-- Lista de Canales de Voz -->
+                            <div class="voice-channels-sublist-head">
+                                <span>Canales de Voz Disponibles</span>
+                                <button type="button" class="btn-sm-action" id="btn-refresh-voice-channels"><i class="fa-solid fa-arrows-rotate"></i> Actualizar</button>
+                            </div>
+                            <div class="voice-channels-cards" id="dual-voice-channels-list">
+                                <!-- Populated dynamically by JS -->
+                            </div>
+                        </div>
+
+                        <!-- COLUMNA DERECHA: CHAT EN VIVO PERSONALIZADO -->
+                        <div class="dual-col-chat glass-card">
+                            <div class="card-head">
+                                <div>
+                                    <h3><i class="fa-solid fa-comments text-cyan"></i> Chat Personalizado en Vivo</h3>
+                                    <p style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">
+                                        Envía mensajes con cualquier remitente, avatar y canal objetivo
+                                    </p>
+                                </div>
+                                <div class="chat-header-actions">
+                                    <button type="button" class="btn-icon" title="Refrescar Chat" id="btn-dual-refresh-chat"><i class="fa-solid fa-arrows-rotate"></i></button>
+                                    <button type="button" class="btn-icon" title="Limpiar Vista" id="btn-dual-clear-chat"><i class="fa-solid fa-broom"></i></button>
+                                </div>
+                            </div>
+
+                            <!-- Selector de Identidad del Remitente -->
+                            <div class="custom-identity-panel">
+                                <div class="identity-presets">
+                                    <span style="font-size: 11px; font-weight:600; color:var(--text-muted); text-transform:uppercase;">Identidad:</span>
+                                    <button type="button" class="btn-identity-preset active" data-name="rafamodzyt" data-avatar="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=200&auto=format&fit=crop">👑 Creador</button>
+                                    <button type="button" class="btn-identity-preset" data-name="Satanas" data-avatar="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop">😈 Satanas</button>
+                                    <button type="button" class="btn-identity-preset" data-name="Erick X" data-avatar="https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=200&auto=format&fit=crop">🤖 Erick X</button>
+                                    <button type="button" class="btn-identity-preset" data-name="custom" data-avatar="">⚡ Personalizado</button>
+                                </div>
+                                <div class="identity-inputs-row" id="identity-inputs-row" style="display:none; margin-top:8px; gap:8px;">
+                                    <input type="text" id="dual-input-sender-name" class="custom-input-sm" placeholder="Nombre que aparecerá en Discord..." style="flex:1;">
+                                    <input type="text" id="dual-input-sender-avatar" class="custom-input-sm" placeholder="URL Foto de Perfil..." style="flex:1.2;">
+                                </div>
+                            </div>
+
+                            <!-- Canal Objetivo & Opciones -->
+                            <div class="dual-chat-target-row">
+                                <div style="display:flex; align-items:center; gap:6px;">
+                                    <i class="fa-solid fa-hashtag text-cyan"></i>
+                                    <label style="font-size:12px; font-weight:600;">Canal:</label>
+                                    <select id="dual-chat-target-select" class="custom-select-sm">
+                                        <option value="general"># general</option>
+                                        <option value="👋・bienvenidas"># 👋・bienvenidas</option>
+                                        <option value="🤖・game-bots"># 🤖・game-bots</option>
+                                        <option value="🚨・send-reports"># 🚨・send-reports</option>
+                                        <option value="🖼️・wallpapers-4k"># 🖼️・wallpapers-4k</option>
+                                        <option value="🎨・stickers-9999-hd"># 🎨・stickers-9999-hd</option>
+                                        <option value="🔊・soundboard-500-freefire"># 🔊・soundboard-500-freefire</option>
+                                    </select>
+                                </div>
+                                <button type="button" class="btn-chip" id="btn-toggle-dual-embed"><i class="fa-solid fa-wand-magic-sparkles"></i> Modo Embed</button>
+                            </div>
+
+                            <!-- Embed Builder Opcional -->
+                            <div class="dual-embed-builder" id="dual-embed-builder" style="display:none; padding:10px; background:rgba(0,0,0,0.3); border-radius:10px; margin-bottom:8px; border:1px solid rgba(255,255,255,0.06);">
+                                <div style="display:flex; gap:8px; margin-bottom:6px;">
+                                    <input type="text" id="dual-embed-title" placeholder="Título del Embed elegante..." class="custom-input-sm" style="flex:1;">
+                                    <input type="color" id="dual-embed-color" value="#00F0FF" style="width:40px; height:32px; border:none; border-radius:6px; cursor:pointer;">
+                                </div>
+                            </div>
+
+                            <!-- Contenedor de Mensajes en Vivo -->
+                            <div class="chat-messages" id="dual-chat-messages-container" style="flex:1; max-height:360px; min-height:260px; overflow-y:auto;">
+                                <!-- Live messages stream -->
+                            </div>
+
+                            <!-- Compositor de Mensaje -->
+                            <div class="chat-composer" style="margin-top:10px;">
+                                <div class="composer-attachment-bar" id="dual-composer-attachment-bar" style="display:none; padding: 6px 12px; background: rgba(0,0,0,0.3); border-radius: 8px; margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
+                                    <i class="fa-solid fa-image text-cyan"></i>
+                                    <input type="text" id="dual-chat-input-image" placeholder="URL directa de la foto o meme..." style="flex:1; background:transparent; border:none; color:#fff; font-size:12px; outline:none;">
+                                    <button type="button" id="btn-dual-clear-img-url" style="background:transparent; border:none; color:#888; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+                                </div>
+                                <div class="composer-input-row">
+                                    <button type="button" id="btn-dual-toggle-attach" class="btn-icon-sub" title="Adjuntar Foto">
+                                        <i class="fa-solid fa-paperclip"></i>
+                                    </button>
+                                    <input type="text" id="dual-chat-input-text" placeholder="Escribe un mensaje personalizado para Discord..." autocomplete="off">
+                                    <button type="button" id="btn-dual-send-chat-msg" class="btn-send-primary">
+                                        <span>Enviar</span>
+                                        <i class="fa-solid fa-paper-plane"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 15. TAB CONTROL MAESTRO DEL SERVIDOR (1000% MODIFICABLE) -->
+                <section class="tab-content" id="tab-server-master">
+                    <div class="server-master-layout">
+                        <!-- Banner Superior -->
+                        <div class="master-header-card glass-card">
+                            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+                                <div>
+                                    <span class="badge-tag tag-gold"><i class="fa-solid fa-crown"></i> ACCESO ROOT TOTAL</span>
+                                    <h2 style="font-size:22px; font-weight:800; margin-top:6px;">Control Maestro del Servidor al 1000%</h2>
+                                    <p style="color:var(--text-secondary); font-size:13px;">Crea y elimina canales, administra roles con colores, edita la configuración del servidor y gestiona todo en vivo.</p>
+                                </div>
+                                <div style="display:flex; gap:10px;">
+                                    <button type="button" class="btn-control btn-play-pulse" id="btn-refresh-master-all"><i class="fa-solid fa-rotate"></i> Sincronizar Todo</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Grid de Secciones Maestras -->
+                        <div class="master-grid">
+                            <!-- 1. GESTOR DE CANALES -->
+                            <div class="glass-card master-card">
+                                <div class="card-head">
+                                    <h3><i class="fa-solid fa-folder-tree text-cyan"></i> Gestión de Canales</h3>
+                                    <span class="badge-tag tag-cyan" id="master-channels-count">13 Canales</span>
+                                </div>
+                                <div class="master-form-box">
+                                    <h4 style="font-size:12px; color:var(--text-muted); text-transform:uppercase; margin-bottom:8px;">+ Crear Nuevo Canal</h4>
+                                    <div style="display:flex; gap:8px; margin-bottom:8px;">
+                                        <input type="text" id="master-new-ch-name" placeholder="nombre-del-canal" class="custom-input-sm" style="flex:1;">
+                                        <select id="master-new-ch-type" class="custom-select-sm" style="width:130px;">
+                                            <option value="0">💬 Texto</option>
+                                            <option value="2">🔊 Voz</option>
+                                        </select>
+                                    </div>
+                                    <button type="button" class="btn-primary-sm" id="btn-master-create-channel"><i class="fa-solid fa-plus"></i> Crear Canal en Discord</button>
+                                </div>
+                                <div class="master-items-list" id="master-channels-container">
+                                    <!-- Loaded by JS -->
+                                </div>
+                            </div>
+
+                            <!-- 2. GESTOR DE ROLES -->
+                            <div class="glass-card master-card">
+                                <div class="card-head">
+                                    <h3><i class="fa-solid fa-shield-halved text-purple"></i> Gestión de Roles</h3>
+                                    <span class="badge-tag tag-purple" id="master-roles-count">6 Roles</span>
+                                </div>
+                                <div class="master-form-box">
+                                    <h4 style="font-size:12px; color:var(--text-muted); text-transform:uppercase; margin-bottom:8px;">+ Crear Nuevo Rol</h4>
+                                    <div style="display:flex; gap:8px; margin-bottom:8px;">
+                                        <input type="text" id="master-new-role-name" placeholder="Nombre del Rol..." class="custom-input-sm" style="flex:1;">
+                                        <input type="color" id="master-new-role-color" value="#5865F2" style="width:40px; height:32px; border:none; border-radius:6px; cursor:pointer;" title="Color del Rol">
+                                    </div>
+                                    <button type="button" class="btn-primary-sm btn-purple" id="btn-master-create-role"><i class="fa-solid fa-plus"></i> Crear Rol en Discord</button>
+                                </div>
+                                <div class="master-items-list" id="master-roles-container">
+                                    <!-- Loaded by JS -->
+                                </div>
+                            </div>
+
+                            <!-- 3. CONFIGURACIÓN DEL SERVIDOR & BOTS -->
+                            <div class="glass-card master-card">
+                                <div class="card-head">
+                                    <h3><i class="fa-solid fa-gears text-gold"></i> Configuración del Servidor</h3>
+                                    <span class="badge-tag tag-gold">SHADOW BLOCK</span>
+                                </div>
+                                <div class="form-group" style="margin-bottom:12px;">
+                                    <label style="font-size:12px; color:var(--text-secondary);">Nombre del Servidor:</label>
+                                    <input type="text" id="master-server-name" class="custom-input-sm" value="SHADOW BLOCK • rafamodzyt">
+                                </div>
+                                <div class="form-group" style="margin-bottom:12px;">
+                                    <label style="font-size:12px; color:var(--text-secondary);">Canal de Voz Oficial 24/7:</label>
+                                    <input type="text" id="master-voice-id" class="custom-input-sm" value="1350706770527653993" readonly>
+                                </div>
+                                <div class="form-group" style="margin-bottom:12px;">
+                                    <label style="font-size:12px; color:var(--text-secondary);">Prefijo Global de Comandos:</label>
+                                    <input type="text" id="master-prefix" class="custom-input-sm" value="//" readonly>
+                                </div>
+                                <button type="button" class="btn-primary-sm btn-gold" id="btn-master-save-server"><i class="fa-solid fa-floppy-disk"></i> Guardar Ajustes</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 16. TAB ANUNCIOS & BROADCAST MASIVO -->
+                <section class="tab-content" id="tab-broadcast">
+                    <div class="broadcast-layout">
+                        <div class="glass-card broadcast-card">
+                            <div class="card-head">
+                                <h3><i class="fa-solid fa-bullhorn text-purple"></i> Emisor de Anuncios Oficiales con Embed</h3>
+                                <span class="badge-tag tag-purple">DISCORD BROADCAST</span>
+                            </div>
+                            <div class="broadcast-form">
+                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;">
+                                    <div class="form-group">
+                                        <label><i class="fa-solid fa-hashtag text-cyan"></i> Canal de Destino:</label>
+                                        <select id="bc-select-channel" class="custom-select">
+                                            <option value="general"># general</option>
+                                            <option value="👋・bienvenidas"># 👋・bienvenidas</option>
+                                            <option value="📢・anuncios"># 📢・anuncios</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label><i class="fa-solid fa-at text-gold"></i> Mención Masiva:</label>
+                                        <select id="bc-select-mention" class="custom-select">
+                                            <option value="">Sin mención</option>
+                                            <option value="@everyone">@everyone (Todos los miembros)</option>
+                                            <option value="@here">@here (Miembros conectados)</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group" style="margin-bottom:14px;">
+                                    <label><i class="fa-solid fa-heading"></i> Título del Anuncio:</label>
+                                    <input type="text" id="bc-input-title" class="custom-input" placeholder="Ej: 🚨 NUEVO SORTEO VIP & ACTUALIZACIÓN DE BOTS">
+                                </div>
+
+                                <div class="form-group" style="margin-bottom:14px;">
+                                    <label><i class="fa-solid fa-align-left"></i> Contenido del Mensaje:</label>
+                                    <textarea id="bc-input-desc" class="custom-textarea" rows="4" placeholder="Escribe el mensaje completo del anuncio..."></textarea>
+                                </div>
+
+                                <div style="display:grid; grid-template-columns:1fr 120px; gap:14px; margin-bottom:16px;">
+                                    <div class="form-group">
+                                        <label><i class="fa-solid fa-image"></i> URL de Imagen / Banner (Opcional):</label>
+                                        <input type="text" id="bc-input-image" class="custom-input" placeholder="https://.../banner.png">
+                                    </div>
+                                    <div class="form-group">
+                                        <label><i class="fa-solid fa-palette"></i> Color:</label>
+                                        <input type="color" id="bc-input-color" value="#FFD700" style="width:100%; height:42px; border:none; border-radius:10px; cursor:pointer;">
+                                    </div>
+                                </div>
+
+                                <button type="button" class="btn-banner btn-send-broadcast" id="btn-trigger-broadcast">
+                                    <i class="fa-solid fa-paper-plane"></i> Disparar Anuncio Oficial a Discord
+                                </button>
                             </div>
                         </div>
                     </div>

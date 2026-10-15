@@ -76,11 +76,17 @@ class ErickBot(commands.Bot):
         self.voice_client = None
         self._connecting_lock = asyncio.Lock()
         self._reconnecting = False
+        self._last_voice_cmd_id = 0
+        self._is_playing_sound = False
+        self._loop_sound = False
+        self._current_sound_file = ""
 
     async def setup_hook(self):
         # Iniciar tareas en segundo plano
         if not self.voice_keeper_task.is_running():
             self.voice_keeper_task.start()
+        if not self.voice_command_listener_task.is_running():
+            self.voice_command_listener_task.start()
         if not self.stats_and_presence_task.is_running():
             self.stats_and_presence_task.start()
 
@@ -296,6 +302,85 @@ class ErickBot(commands.Bot):
                 print(f"[Voz 24/7] Error moviendo a canal objetivo: {e}. Forzando reconexión...", flush=True)
                 asyncio.create_task(self.ensure_voice_connection())
 
+    @tasks.loop(seconds=1)
+    async def voice_command_listener_task(self):
+        """Escucha comandos desde el Panel Web para reproducir sonidos o spam/loop en vivo."""
+        cmd_file = os.path.join(os.path.dirname(__file__), "data", "voice_command.json")
+        if not os.path.exists(cmd_file):
+            return
+
+        try:
+            with open(cmd_file, "r", encoding="utf-8") as f:
+                cmd = json.load(f)
+
+            cmd_id = cmd.get("id", 0)
+            if cmd_id <= self._last_voice_cmd_id:
+                return
+
+            self._last_voice_cmd_id = cmd_id
+            target_bot = cmd.get("bot", "erick").lower()
+            if target_bot not in ["erick", "bot1", "all"]:
+                return
+
+            action = cmd.get("action")
+            if action == "stop":
+                self._loop_sound = False
+                self._is_playing_sound = False
+                if self.voice_client and self.voice_client.is_playing():
+                    self.voice_client.stop()
+                if self.voice_client and self.voice_client.is_connected() and not self.voice_client.is_playing():
+                    try:
+                        self.voice_client.play(SilentAudioSource())
+                    except Exception:
+                        pass
+                print("[Erick Soundboard] Sonidos detenidos desde la Web.", flush=True)
+
+            elif action == "play":
+                sound_name = cmd.get("sound", "donato.mp3")
+                loop = bool(cmd.get("loop", False))
+                base_dir = os.path.dirname(os.path.abspath(__file__))
+                sound_path = os.path.join(base_dir, sound_name)
+                if not os.path.exists(sound_path):
+                    sound_path = os.path.join(base_dir, "donato.mp3")
+
+                if not os.path.exists(sound_path):
+                    return
+
+                if not self.voice_client or not self.voice_client.is_connected():
+                    await self.ensure_voice_connection()
+                    if not self.voice_client or not self.voice_client.is_connected():
+                        return
+
+                self._loop_sound = loop
+                self._is_playing_sound = True
+                self._current_sound_file = sound_path
+
+                if self.voice_client.is_playing():
+                    self.voice_client.stop()
+
+                def after_playback(err):
+                    if err:
+                        print(f"[Erick Sound Error] {err}", flush=True)
+                    if self._loop_sound and self._is_playing_sound and self.voice_client and self.voice_client.is_connected():
+                        try:
+                            src = discord.FFmpegPCMAudio(self._current_sound_file)
+                            self.voice_client.play(src, after=after_playback)
+                        except Exception:
+                            pass
+                    else:
+                        self._is_playing_sound = False
+                        if self.voice_client and self.voice_client.is_connected() and not self.voice_client.is_playing():
+                            try:
+                                self.voice_client.play(SilentAudioSource())
+                            except Exception:
+                                pass
+
+                source = discord.FFmpegPCMAudio(sound_path)
+                self.voice_client.play(source, after=after_playback)
+                print(f"[Erick Soundboard] 🔊 Erick X reproduciendo '{sound_name}' en General (Loop/Spam: {loop})", flush=True)
+        except Exception:
+            pass
+
     @tasks.loop(seconds=5)
     async def voice_keeper_task(self):
         """Vigilante Ultra-Rápido (cada 5s): Asegura presencia 100% permanente en General."""
@@ -320,8 +405,8 @@ class ErickBot(commands.Bot):
                 except Exception:
                     pass
 
-            # 3. Transmisión silenciosa continua anti-AFK
-            if not vc.is_playing():
+            # 3. Transmisión silenciosa continua anti-AFK (solo si no hay audio personalizado reproduciéndose)
+            if not vc.is_playing() and not self._is_playing_sound:
                 try:
                     vc.play(SilentAudioSource())
                 except Exception:
