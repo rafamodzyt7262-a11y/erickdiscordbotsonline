@@ -50,6 +50,18 @@ def in_control_channel_or_admin():
         return False
     return commands.check(predicate)
 
+class SilentAudioSource(discord.AudioSource):
+    """
+    Fuente de audio Opus silenciosa (paquetes oficiales Opus de 20ms = 3 bytes).
+    Mantiene la conexión de voz activa 24/7 sin consumir CPU ni ancho de banda,
+    y evita que Discord desconecte al bot por inactividad / timeout o lo mande a AFK.
+    """
+    def is_opus(self) -> bool:
+        return True
+
+    def read(self) -> bytes:
+        return b'\xf8\xff\xfe'
+
 class ErickBot(commands.Bot):
     def __init__(self, intents: discord.Intents):
         super().__init__(
@@ -63,6 +75,7 @@ class ErickBot(commands.Bot):
         self.bot_start_time = time.time()
         self.voice_client = None
         self._connecting_lock = asyncio.Lock()
+        self._reconnecting = False
 
     async def setup_hook(self):
         # Iniciar tareas en segundo plano
@@ -80,19 +93,65 @@ class ErickBot(commands.Bot):
         except Exception as e:
             print(f"[Slash Sync] Aviso al sincronizar comandos slash: {e}", flush=True)
 
+    def get_target_voice_channel(self) -> discord.VoiceChannel | None:
+        """
+        Localiza el canal de voz 'General' con máxima resiliencia y auto-descubrimiento:
+        1. Comprueba target_voice_channel_id configurado si existe en el servidor.
+        2. Si no, busca cualquier canal de voz cuyo nombre sea exactamente 'General' (o 'general').
+        3. Si no, busca cualquier canal que contenga la palabra 'general' en minúsculas.
+        4. Si no, toma el primer canal de voz disponible en el servidor.
+        """
+        guild = self.get_guild(config.GUILD_ID)
+        if not guild and self.guilds:
+            guild = self.guilds[0]
+
+        if not guild:
+            return None
+
+        # 1. Por ID directo configurado si existe en el servidor
+        if self.target_voice_channel_id:
+            ch = guild.get_channel(self.target_voice_channel_id)
+            if isinstance(ch, discord.VoiceChannel):
+                return ch
+
+        # 2. Por nombre exacto 'general'
+        for ch in guild.voice_channels:
+            if ch.name.strip().lower() == "general":
+                self.target_voice_channel_id = ch.id
+                return ch
+
+        # 3. Por coincidencia parcial de 'general' (ej: 🔊・General, General 1, etc.)
+        for ch in guild.voice_channels:
+            if "general" in ch.name.lower():
+                self.target_voice_channel_id = ch.id
+                return ch
+
+        # 4. Fallback al primer canal de voz disponible
+        if guild.voice_channels:
+            chosen = guild.voice_channels[0]
+            self.target_voice_channel_id = chosen.id
+            return chosen
+
+        return None
+
     async def on_ready(self):
         print("==================================================", flush=True)
         print(f"🤖 Bot iniciado con éxito: {self.user} (ID: {self.user.id})", flush=True)
         print(f"👑 Creador: {config.CREATOR_NAME}", flush=True)
         print(f"🌐 Discord Oficial: {config.DISCORD_INVITE}", flush=True)
         print(f"🎯 Canal de Control: {config.CONTROL_CHANNEL_ID}", flush=True)
-        print(f"🎙️ Canal de Voz Objetivo: {self.target_voice_channel_id}", flush=True)
+        
+        target_ch = self.get_target_voice_channel()
+        ch_name = f"'{target_ch.name}' ({target_ch.id})" if target_ch else f"ID: {self.target_voice_channel_id}"
+        print(f"🎙️ Canal de Voz Objetivo: {ch_name}", flush=True)
+        print("🔒 Modo 24/7 General Permanente: ACTIVO", flush=True)
         print("==================================================", flush=True)
-        # Conexión inicial a voz
+        
+        # Conexión inicial inmediata a voz
         await self.ensure_voice_connection()
 
     async def ensure_voice_connection(self):
-        """Verifica y asegura la conexión continua 24/7 al canal de voz."""
+        """Verifica y asegura la conexión continua 24/7 al canal de voz General."""
         if not self.auto_reconnect_enabled:
             return
 
@@ -100,60 +159,181 @@ class ErickBot(commands.Bot):
             return
 
         async with self._connecting_lock:
-            guild = self.get_guild(config.GUILD_ID)
-            if not guild:
+            channel = self.get_target_voice_channel()
+            if not channel:
                 return
 
-            channel = guild.get_channel(self.target_voice_channel_id)
-            if not channel or not isinstance(channel, discord.VoiceChannel):
-                return
-
+            guild = channel.guild
             try:
                 current_vc = guild.voice_client
+
+                # Caso 1: Ya está conectado a voz
                 if current_vc and current_vc.is_connected():
+                    # Si está en un canal diferente a General, moverlo de vuelta de inmediato
                     if current_vc.channel.id != channel.id:
-                        await current_vc.move_to(channel)
+                        print(f"[Voz 24/7] ⚠️ Bot en canal incorrecto ('{current_vc.channel.name}'). Moviendo de vuelta a '{channel.name}'...", flush=True)
+                        try:
+                            await current_vc.move_to(channel)
+                        except Exception as e_mv:
+                            print(f"[Voz 24/7] Error moviendo a canal objetivo: {e_mv}", flush=True)
+
                     self.voice_client = current_vc
                     if not self.stats.is_in_voice:
                         self.stats.on_voice_connected()
+
+                    # Transmitir flujo de silencio anti-inactividad / anti-timeout
+                    if not current_vc.is_playing():
+                        try:
+                            current_vc.play(SilentAudioSource())
+                        except Exception:
+                            pass
                     return
 
-                print(f"[Voz 24/7] Conectando a '{channel.name}' ({channel.id})...", flush=True)
-                self.voice_client = await channel.connect(reconnect=True, self_deaf=True)
-                self.stats.on_voice_connected()
-                print(f"[Voz 24/7] Conectado exitosamente en '{channel.name}'. Ensordecido activo.", flush=True)
-            except discord.ClientException as e:
-                if "Already connected" in str(e):
-                    self.voice_client = guild.voice_client
-                    if not self.stats.is_in_voice:
-                        self.stats.on_voice_connected()
-                else:
-                    print(f"[Voz 24/7] Aviso: {e}", flush=True)
-            except Exception as e:
-                print(f"[Voz 24/7] Reconexión o aviso: {e}", flush=True)
+                # Caso 2: Cliente zombie o desconectado en cache
+                if current_vc:
+                    print("[Voz 24/7] Limpiando cliente de voz residual previo...", flush=True)
+                    try:
+                        await current_vc.disconnect(force=True)
+                    except Exception:
+                        pass
+                    await asyncio.sleep(0.5)
 
+                # Caso 3: Conexión limpia al canal de voz General
+                print(f"[Voz 24/7] Conectando a '{channel.name}' ({channel.id})...", flush=True)
+                self.voice_client = await channel.connect(reconnect=True, self_deaf=True, timeout=20.0)
+                self.stats.on_voice_connected()
+
+                # Iniciar audio silencioso continuo (evita que Discord lo bote por AFK o inactividad)
+                try:
+                    if self.voice_client and not self.voice_client.is_playing():
+                        self.voice_client.play(SilentAudioSource())
+                except Exception:
+                    pass
+
+                print(f"[Voz 24/7] 🟢 Conectado exitosamente en '{channel.name}'. Anti-kick, Ensordecido y Anti-AFK activos.", flush=True)
+
+            except discord.ClientException as e:
+                err_str = str(e)
+                if "Already connected" in err_str:
+                    if guild.voice_client and guild.voice_client.is_connected():
+                        self.voice_client = guild.voice_client
+                        if self.voice_client.channel.id != channel.id:
+                            await self.voice_client.move_to(channel)
+                        if not self.stats.is_in_voice:
+                            self.stats.on_voice_connected()
+                    else:
+                        try:
+                            if guild.voice_client:
+                                await guild.voice_client.disconnect(force=True)
+                            await asyncio.sleep(0.5)
+                            self.voice_client = await channel.connect(reconnect=True, self_deaf=True, timeout=20.0)
+                            self.stats.on_voice_connected()
+                        except Exception as e_clean:
+                            print(f"[Voz 24/7] Reintento post-limpieza: {e_clean}", flush=True)
+                else:
+                    print(f"[Voz 24/7] Aviso ClientException: {e}", flush=True)
+            except Exception as e:
+                print(f"[Voz 24/7] Aviso de conexión: {e}", flush=True)
+
+    async def reconnect_forever(self):
+        """Bucle ininterrumpido de reconexión rápida ante desconexiones accidentales o forzadas."""
+        if self._reconnecting:
+            return
+        self._reconnecting = True
+        delay = 1
+        try:
+            while self.auto_reconnect_enabled:
+                target_ch = self.get_target_voice_channel()
+                if not target_ch:
+                    await asyncio.sleep(2)
+                    continue
+
+                guild = target_ch.guild
+                if guild.voice_client and guild.voice_client.is_connected() and guild.voice_client.channel.id == target_ch.id:
+                    break
+
+                try:
+                    await self.ensure_voice_connection()
+                    if guild.voice_client and guild.voice_client.is_connected():
+                        break
+                except Exception as e:
+                    print(f"[Auto-Reconectar] Intento fallido ({e}). Reintentando en {delay}s...", flush=True)
+
+                await asyncio.sleep(delay)
+                delay = min(delay * 1.5, 4.0)
+        finally:
+            self._reconnecting = False
 
     async def on_voice_state_update(self, member, before, after):
-        """Monitorea eventos de voz del bot para auto-reconexión inmediata."""
-        if member.id == self.user.id:
-            if after.channel is None:
-                print("[Voz 24/7] Desconexión detectada. Reanudando conexión en 2 segundos...", flush=True)
-                self.stats.on_voice_disconnected()
-                self.voice_client = None
-                if self.auto_reconnect_enabled:
-                    await asyncio.sleep(2)
-                    await self.ensure_voice_connection()
-            elif before.channel != after.channel:
-                print(f"[Voz 24/7] Canal actualizado a: {after.channel.name}", flush=True)
+        """
+        Monitorea el estado de voz del bot para garantizar:
+        1. Si se desconecta -> Reconexión inmediata automática.
+        2. Si alguien lo mueve o Discord lo pasa a AFK -> Regreso instantáneo al canal General.
+        """
+        if member.id != self.user.id:
+            return
 
+        target_ch = self.get_target_voice_channel()
 
-    @tasks.loop(seconds=30)
+        # Desconexión detectada
+        if after.channel is None:
+            print("[Voz 24/7] 🚨 Desconexión detectada. Reconectando de inmediato a General...", flush=True)
+            self.stats.on_voice_disconnected()
+            self.voice_client = None
+            if self.auto_reconnect_enabled:
+                asyncio.create_task(self.reconnect_forever())
+
+        # El bot fue movido a otro canal de voz o al canal AFK
+        elif target_ch and after.channel.id != target_ch.id:
+            print(f"[Voz 24/7] ⚠️ Movimiento detectado a '{after.channel.name}'. Regresando de inmediato a '{target_ch.name}'...", flush=True)
+            try:
+                if self.voice_client and self.voice_client.is_connected():
+                    await self.voice_client.move_to(target_ch)
+                else:
+                    await member.move_to(target_ch)
+                print(f"[Voz 24/7] 🟢 Retornado exitosamente a '{target_ch.name}'.", flush=True)
+            except Exception as e:
+                print(f"[Voz 24/7] Error moviendo a canal objetivo: {e}. Forzando reconexión...", flush=True)
+                asyncio.create_task(self.ensure_voice_connection())
+
+    @tasks.loop(seconds=5)
     async def voice_keeper_task(self):
-        """Verifica cada 30 segundos que el bot no se haya desconectado."""
+        """Vigilante Ultra-Rápido (cada 5s): Asegura presencia 100% permanente en General."""
         try:
-            await self.ensure_voice_connection()
+            target_ch = self.get_target_voice_channel()
+            if not target_ch:
+                return
+
+            guild = target_ch.guild
+            vc = guild.voice_client
+
+            # 1. Si no está conectado o el socket cayó
+            if not vc or not vc.is_connected():
+                await self.ensure_voice_connection()
+                return
+
+            # 2. Si fue movido a otro canal
+            if vc.channel.id != target_ch.id:
+                print(f"[Voice Keeper] Corrigiendo canal: de '{vc.channel.name}' a '{target_ch.name}'...", flush=True)
+                try:
+                    await vc.move_to(target_ch)
+                except Exception:
+                    pass
+
+            # 3. Transmisión silenciosa continua anti-AFK
+            if not vc.is_playing():
+                try:
+                    vc.play(SilentAudioSource())
+                except Exception:
+                    pass
+
+            # 4. Asegurar que las estadísticas estén contando
+            if not self.stats.is_in_voice:
+                self.stats.on_voice_connected()
+
         except Exception as e:
-            print(f"[Voice Keeper Error] {e}")
+            # Nunca abortar la tarea
+            pass
 
     @tasks.loop(seconds=60)
     async def stats_and_presence_task(self):
@@ -172,7 +352,7 @@ class ErickBot(commands.Bot):
             idx = int(time.time() // 60) % len(status_options)
             await self.change_presence(activity=status_options[idx], status=discord.Status.online)
         except Exception as e:
-            print(f"[Presence Error] {e}")
+            print(f"[Presence Error] {e}", flush=True)
 
     @voice_keeper_task.before_loop
     @stats_and_presence_task.before_loop
@@ -608,7 +788,7 @@ def setup_bot_commands(bot: ErickBot):
             print(f"[Error de Comando] {error}")
 
 def run_bot():
-    """Arranque principal del bot."""
+    """Arranque principal del bot con auto-reinicio perpetuo 24/7."""
     if not config.DISCORD_TOKEN:
         print("❌ ERROR: No se encontró DISCORD_TOKEN en .env", flush=True)
         sys.exit(1)
@@ -627,22 +807,43 @@ def run_bot():
     # Iniciar servidor web de monitoreo para Railway / Render / UptimeRobot
     start_keep_alive(stats_manager=bot.stats, bot=bot, port=config.PORT)
 
-    print("🚀 Iniciando Erick x 24/7...", flush=True)
-    try:
-        bot.run(config.DISCORD_TOKEN, reconnect=True)
-    except discord.errors.PrivilegedIntentsRequired:
-        print("\n⚠️ AVISO: 'Message Content Intent' no está activado en Discord Developer Portal.", flush=True)
-        print(f"👉 Actívalo aquí: https://discord.com/developers/applications/{config.APPLICATION_ID}/bot", flush=True)
-        print("Iniciando modo compatible con comandos Slash y conexión 24/7 a voz...", flush=True)
-        
-        fallback_intents = discord.Intents.default()
-        fallback_intents.guilds = True
-        fallback_intents.voice_states = True
-        fallback_intents.messages = True
-        fallback_bot = ErickBot(intents=fallback_intents)
-        setup_bot_commands(fallback_bot)
-        set_bot_reference(fallback_bot, fallback_bot.stats)
-        fallback_bot.run(config.DISCORD_TOKEN, reconnect=True)
+    print("🚀 Iniciando Erick x 24/7 (Voz Permanente en General)...", flush=True)
+
+    while True:
+        try:
+            bot.run(config.DISCORD_TOKEN, reconnect=True)
+        except discord.errors.LoginFailure as e:
+            print("\n" + "="*60, flush=True)
+            print("❌ ERROR DE AUTENTICACIÓN DE DISCORD (Token Inválido)", flush=True)
+            print(f"👉 Detalle: {e}", flush=True)
+            print("El DISCORD_TOKEN en tu archivo .env no es válido o fue reseteado en Discord Developer Portal.", flush=True)
+            print(f"👉 Ve a: https://discord.com/developers/applications/{config.APPLICATION_ID}/bot", flush=True)
+            print("Copia tu nuevo Token ('Reset Token') y pégalo en el archivo .env en DISCORD_TOKEN=...", flush=True)
+            print("="*60 + "\n", flush=True)
+            time.sleep(10)
+        except discord.errors.PrivilegedIntentsRequired:
+            print("\n⚠️ AVISO: 'Message Content Intent' no está activado en Discord Developer Portal.", flush=True)
+            print(f"👉 Actívalo aquí: https://discord.com/developers/applications/{config.APPLICATION_ID}/bot", flush=True)
+            print("Iniciando modo compatible con comandos Slash y conexión 24/7 a voz...", flush=True)
+            
+            fallback_intents = discord.Intents.default()
+            fallback_intents.guilds = True
+            fallback_intents.voice_states = True
+            fallback_intents.messages = True
+            fallback_bot = ErickBot(intents=fallback_intents)
+            setup_bot_commands(fallback_bot)
+            set_bot_reference(fallback_bot, fallback_bot.stats)
+            try:
+                fallback_bot.run(config.DISCORD_TOKEN, reconnect=True)
+            except Exception as e_fb:
+                print(f"⚠️ Error en bot fallback: {e_fb}. Reintentando en 5s...", flush=True)
+                time.sleep(5)
+        except KeyboardInterrupt:
+            print("\nDetención manual solicitada por el usuario.", flush=True)
+            break
+        except Exception as e:
+            print(f"⚠️ Caída detectada: {e}. Reiniciando bot automáticamente en 3 segundos...", flush=True)
+            time.sleep(3)
 
 
 

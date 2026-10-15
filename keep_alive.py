@@ -501,7 +501,12 @@ def set_bot_reference(bot, stats=None):
         _stats_ref = stats
 
 def run_web(port=config.PORT):
-    app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False)
+    try:
+        app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False)
+    except OSError as e:
+        print(f"[KeepAlive] Aviso: El puerto {port} ya está ocupado por otro proceso ({e}). El servidor web seguirá activo en el proceso inicial.", flush=True)
+    except Exception as e:
+        print(f"[KeepAlive] Error en servidor web: {e}", flush=True)
 
 _web_running = False
 

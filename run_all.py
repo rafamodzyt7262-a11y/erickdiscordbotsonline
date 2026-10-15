@@ -13,17 +13,20 @@ if sys.platform == "win32":
         pass
 
 async def run_process(cmd: list, name: str):
-    """Ejecuta y supervisa un bot de Discord con auto-reinicio si se detiene."""
+    """Ejecuta y supervisa un bot de Discord con auto-reinicio inmediato si se detiene."""
     while True:
         print(f"[{name}] Iniciando proceso...", flush=True)
-        proc = await asyncio.create_subprocess_exec(
-            *cmd,
-            stdout=sys.stdout,
-            stderr=sys.stderr
-        )
-        await proc.wait()
-        print(f"[{name}] El proceso se detuvo (código {proc.returncode}). Reiniciando en 5 segundos...", flush=True)
-        await asyncio.sleep(5)
+        try:
+            proc = await asyncio.create_subprocess_exec(
+                *cmd,
+                stdout=sys.stdout,
+                stderr=sys.stderr
+            )
+            await proc.wait()
+            print(f"[{name}] ⚠️ El proceso se detuvo (código {proc.returncode}). Reiniciando de inmediato en 2 segundos...", flush=True)
+        except Exception as e:
+            print(f"[{name}] ⚠️ Excepción en subproceso: {e}. Reintentando en 2 segundos...", flush=True)
+        await asyncio.sleep(2)
 
 async def main():
     print("==================================================", flush=True)
@@ -32,9 +35,6 @@ async def main():
     print("1️⃣ Bot 1: Erick x (Voz 24/7 & Meta 1M de Horas)")
     print("2️⃣ Bot 2: Administrador & Bienvenidas (SHADOW BLOCK)")
     print("==================================================", flush=True)
-
-    # Iniciar servidor web de monitoreo para Railway / UptimeRobot
-    start_keep_alive(port=config.PORT)
 
     python_exe = sys.executable
 

@@ -6,7 +6,7 @@
   "deploy": {
     "startCommand": "python run_all.py",
     "restartPolicyType": "ALWAYS",
-    "restartPolicyMaxRetries": 10
+    "restartPolicyMaxRetries": 100
   }
 
 }

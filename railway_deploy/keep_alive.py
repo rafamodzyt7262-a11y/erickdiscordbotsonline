@@ -10,6 +10,7 @@ import requests
 
 import config
 
+# Silenciar logs ruidosos de werkzeug
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
 
@@ -19,6 +20,7 @@ CHAT_LOGS_FILE = os.path.join(BASE_DIR, "data", "chat_logs.json")
 
 app = Flask(__name__)
 
+# Referencia al stats manager y al bot para mostrar datos en vivo
 _stats_ref = None
 _bot_ref = None
 _start_time = time.time()
@@ -43,7 +45,11 @@ HTML_TEMPLATE = """
             --text-sub: #8b949e;
             --border: rgba(255, 255, 255, 0.1);
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
         body {
             font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
             background: radial-gradient(circle at 50% 10%, #171b2e 0%, var(--bg) 100%);
@@ -99,22 +105,106 @@ HTML_TEMPLATE = """
             50% { transform: scale(1.4); opacity: 1; }
             100% { transform: scale(0.95); opacity: 0.8; }
         }
-        h1 { font-size: 2.2rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 8px; }
-        .subtitle { color: var(--text-sub); font-size: 0.95rem; margin-bottom: 28px; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; text-align: left; }
-        .card { background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border); border-radius: 16px; padding: 16px 18px; }
-        .card-title { color: var(--text-sub); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; margin-bottom: 6px; }
-        .card-value { font-family: 'JetBrains Mono', monospace; font-size: 1.3rem; font-weight: 600; }
-        .progress-box { background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border); border-radius: 16px; padding: 16px 20px; margin-bottom: 28px; text-align: left; }
-        .progress-header { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-sub); margin-bottom: 10px; }
-        .progress-bar-bg { height: 10px; background: rgba(255, 255, 255, 0.08); border-radius: 999px; overflow: hidden; }
-        .progress-bar-fill { height: 100%; background: linear-gradient(90deg, #5865F2, #00F0FF); box-shadow: 0 0 12px rgba(88, 101, 242, 0.5); transition: width 0.5s ease; }
-        .buttons { display: flex; flex-direction: column; gap: 12px; }
-        .btn { display: flex; align-items: center; justify-content: center; gap: 10px; background: var(--accent); color: #fff; text-decoration: none; padding: 14px 24px; border-radius: 14px; font-weight: 600; transition: 0.2s ease; box-shadow: 0 6px 20px var(--accent-glow); }
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(88, 101, 242, 0.5); }
-        .btn-panel { background: linear-gradient(135deg, #00F0FF, #5865F2); color: #fff; box-shadow: 0 6px 25px rgba(0, 240, 255, 0.4); }
-        .btn-panel:hover { box-shadow: 0 8px 30px rgba(0, 240, 255, 0.6); }
-        .footer { margin-top: 24px; font-size: 0.8rem; color: var(--text-sub); }
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+        }
+        .subtitle {
+            color: var(--text-sub);
+            font-size: 0.95rem;
+            margin-bottom: 28px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+            text-align: left;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 16px 18px;
+        }
+        .card-title {
+            color: var(--text-sub);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+        .card-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+        .progress-box {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 16px 20px;
+            margin-bottom: 28px;
+            text-align: left;
+        }
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: var(--text-sub);
+            margin-bottom: 10px;
+        }
+        .progress-bar-bg {
+            height: 10px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 999px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #5865F2, #00F0FF);
+            box-shadow: 0 0 12px rgba(88, 101, 242, 0.5);
+            transition: width 0.5s ease;
+        }
+        .buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: var(--accent);
+            color: #fff;
+            text-decoration: none;
+            padding: 14px 24px;
+            border-radius: 14px;
+            font-weight: 600;
+            transition: 0.2s ease;
+            box-shadow: 0 6px 20px var(--accent-glow);
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(88, 101, 242, 0.5);
+        }
+        .btn-panel {
+            background: linear-gradient(135deg, #00F0FF, #5865F2);
+            color: #fff;
+            box-shadow: 0 6px 25px rgba(0, 240, 255, 0.4);
+        }
+        .btn-panel:hover {
+            box-shadow: 0 8px 30px rgba(0, 240, 255, 0.6);
+        }
+        .footer {
+            margin-top: 24px;
+            font-size: 0.8rem;
+            color: var(--text-sub);
+        }
     </style>
 </head>
 <body>
@@ -178,6 +268,7 @@ HTML_TEMPLATE = """
 </html>
 """
 
+# Rutas principales: Servir Panel Web Completo en / y /panel
 @app.route('/')
 @app.route('/panel')
 def home():
@@ -215,15 +306,21 @@ def show_card():
         ping_ms=ping_ms
     )
 
+# Servir archivos estáticos del panel web (css, js, mp3, imágenes)
 @app.route('/<path:filename>')
 def serve_web_assets(filename):
     file_path = os.path.join(WEB_DIR, filename)
     if os.path.exists(file_path):
         return send_from_directory(WEB_DIR, filename)
+    # También permitir servir audios de la raíz si se piden
     root_file = os.path.join(BASE_DIR, filename)
     if os.path.exists(root_file) and (filename.endswith('.mp3') or filename.endswith('.wav') or filename.endswith('.jpg')):
         return send_from_directory(BASE_DIR, filename)
     return "Not Found", 404
+
+# ==========================================
+# APIS REST PARA EL PANEL WEB
+# ==========================================
 
 @app.route('/api/stats')
 def api_stats():
@@ -258,6 +355,7 @@ def api_stats():
 
 @app.route('/api/chat', methods=['GET'])
 def api_get_chat():
+    """Obtiene el registro en vivo de mensajes y fotos de todos los canales."""
     if os.path.exists(CHAT_LOGS_FILE):
         try:
             with open(CHAT_LOGS_FILE, 'r', encoding='utf-8') as f:
@@ -266,6 +364,7 @@ def api_get_chat():
         except Exception as e:
             print(f"[API Chat Error] {e}", flush=True)
 
+    # Mensajes iniciales si el archivo aún no existe
     initial_sample = [
         {
             "id": "init_1",
@@ -311,6 +410,7 @@ def api_get_chat():
 
 @app.route('/api/chat/send', methods=['POST'])
 def api_send_chat():
+    """Permite enviar un mensaje o foto a Discord vía Webhook y registrarlo."""
     try:
         data = request.get_json(force=True) or {}
         text = data.get("text", "").strip()
@@ -336,6 +436,7 @@ def api_send_chat():
             "date": time.strftime("%Y-%m-%d")
         }
 
+        # Guardar en logs
         logs = []
         if os.path.exists(CHAT_LOGS_FILE):
             try:
@@ -352,6 +453,7 @@ def api_send_chat():
         with open(CHAT_LOGS_FILE, 'w', encoding='utf-8') as f:
             json.dump(logs, f, ensure_ascii=False, indent=2)
 
+        # Enviar vía Webhook a Discord si está configurado
         if config.WEBHOOK_URL:
             try:
                 payload = {
@@ -370,6 +472,7 @@ def api_send_chat():
 
 @app.route('/api/chat/clear', methods=['POST'])
 def api_clear_chat():
+    """Limpia el historial de chat."""
     try:
         if os.path.exists(CHAT_LOGS_FILE):
             with open(CHAT_LOGS_FILE, 'w', encoding='utf-8') as f:
@@ -391,17 +494,24 @@ def health():
     }), 200
 
 def set_bot_reference(bot, stats=None):
+    """Actualiza la referencia de bot y estadísticas si cambia la instancia."""
     global _bot_ref, _stats_ref
     _bot_ref = bot
     if stats:
         _stats_ref = stats
 
 def run_web(port=config.PORT):
-    app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False)
+    try:
+        app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False)
+    except OSError as e:
+        print(f"[KeepAlive] Aviso: El puerto {port} ya está ocupado por otro proceso ({e}). El servidor web seguirá activo en el proceso inicial.", flush=True)
+    except Exception as e:
+        print(f"[KeepAlive] Error en servidor web: {e}", flush=True)
 
 _web_running = False
 
 def start_keep_alive(stats_manager=None, bot=None, port=config.PORT):
+    """Inicia el servidor web en un hilo separado para mantener vivo el bot en Railway."""
     global _stats_ref, _bot_ref, _web_running
     if stats_manager:
         _stats_ref = stats_manager
