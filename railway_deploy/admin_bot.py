@@ -233,6 +233,13 @@ class SendReportsModal(Modal, title="🚨 Enviar 55 Reportes a Cuenta"):
         )
         await msg.edit(embed=emb_final)
 
+class SilentAudioSource(discord.AudioSource):
+    """Fuente de audio Opus silenciosa para evitar desconexiones por inactividad o AFK."""
+    def is_opus(self) -> bool:
+        return True
+    def read(self) -> bytes:
+        return b'\xf8\xff\xfe'
+
 class AdminBot(commands.Bot):
     def __init__(self, intents: discord.Intents):
         super().__init__(
@@ -243,8 +250,17 @@ class AdminBot(commands.Bot):
         self.welcome_channel_id = config.WELCOME_CHANNEL_ID
         self.webhook_url = config.WEBHOOK_URL
         self.start_time = time.time()
+        self.target_voice_channel_id = config.VOICE_CHANNEL_ID
+        self.auto_reconnect_enabled = True
+        self.voice_client = None
+        self._connecting_lock = asyncio.Lock()
+        self._reconnecting = False
 
     async def setup_hook(self):
+        # Iniciar vigilante de voz 24/7 en canal General
+        if not self.voice_keeper_task.is_running():
+            self.voice_keeper_task.start()
+
         # Sincronizar comandos slash en el servidor principal para disponibilidad instantánea
         try:
             guild_obj = discord.Object(id=config.GUILD_ID)
@@ -253,6 +269,177 @@ class AdminBot(commands.Bot):
             print(f"[Admin Bot] Comandos sincronizados exitosamente en servidor ID: {config.GUILD_ID}", flush=True)
         except Exception as e:
             print(f"[Admin Bot] Aviso al sincronizar slash commands: {e}", flush=True)
+
+    def get_target_voice_channel(self) -> discord.VoiceChannel | None:
+        """Localiza el canal de voz General con auto-descubrimiento."""
+        guild = self.get_guild(config.GUILD_ID)
+        if not guild and self.guilds:
+            guild = self.guilds[0]
+        if not guild:
+            return None
+
+        if self.target_voice_channel_id:
+            ch = guild.get_channel(self.target_voice_channel_id)
+            if isinstance(ch, discord.VoiceChannel):
+                return ch
+
+        for ch in guild.voice_channels:
+            if ch.name.strip().lower() == "general":
+                self.target_voice_channel_id = ch.id
+                return ch
+
+        for ch in guild.voice_channels:
+            if "general" in ch.name.lower():
+                self.target_voice_channel_id = ch.id
+                return ch
+
+        if guild.voice_channels:
+            chosen = guild.voice_channels[0]
+            self.target_voice_channel_id = chosen.id
+            return chosen
+        return None
+
+    async def ensure_voice_connection(self):
+        """Verifica y asegura la conexión continua 24/7 al canal de voz General."""
+        if not self.auto_reconnect_enabled:
+            return
+
+        if self._connecting_lock.locked():
+            return
+
+        async with self._connecting_lock:
+            channel = self.get_target_voice_channel()
+            if not channel:
+                return
+
+            guild = channel.guild
+            try:
+                current_vc = guild.voice_client
+                if current_vc and current_vc.is_connected():
+                    if current_vc.channel.id != channel.id:
+                        print(f"[Admin Bot Voz] Moviendo a '{channel.name}'...", flush=True)
+                        try:
+                            await current_vc.move_to(channel)
+                        except Exception:
+                            pass
+                    self.voice_client = current_vc
+                    if not current_vc.is_playing():
+                        try:
+                            current_vc.play(SilentAudioSource())
+                        except Exception:
+                            pass
+                    return
+
+                if current_vc:
+                    try:
+                        await current_vc.disconnect(force=True)
+                    except Exception:
+                        pass
+                    await asyncio.sleep(0.5)
+
+                print(f"[Admin Bot Voz] Conectando a '{channel.name}' ({channel.id})...", flush=True)
+                self.voice_client = await channel.connect(reconnect=True, self_deaf=True, timeout=20.0)
+                try:
+                    if self.voice_client and not self.voice_client.is_playing():
+                        self.voice_client.play(SilentAudioSource())
+                except Exception:
+                    pass
+                print(f"[Admin Bot Voz] 🟢 Conectado exitosamente en '{channel.name}'. Anti-kick y Anti-AFK activos.", flush=True)
+
+            except discord.ClientException as e:
+                if "Already connected" in str(e):
+                    if guild.voice_client and guild.voice_client.is_connected():
+                        self.voice_client = guild.voice_client
+                        if self.voice_client.channel.id != channel.id:
+                            await self.voice_client.move_to(channel)
+                    else:
+                        try:
+                            if guild.voice_client:
+                                await guild.voice_client.disconnect(force=True)
+                            await asyncio.sleep(0.5)
+                            self.voice_client = await channel.connect(reconnect=True, self_deaf=True, timeout=20.0)
+                        except Exception:
+                            pass
+            except Exception as e:
+                print(f"[Admin Bot Voz] Aviso de conexión: {e}", flush=True)
+
+    async def reconnect_forever(self):
+        """Bucle de reconexión rápida permanente ante caídas o expulsiones."""
+        if self._reconnecting:
+            return
+        self._reconnecting = True
+        delay = 1
+        try:
+            while self.auto_reconnect_enabled:
+                target_ch = self.get_target_voice_channel()
+                if not target_ch:
+                    await asyncio.sleep(2)
+                    continue
+
+                guild = target_ch.guild
+                if guild.voice_client and guild.voice_client.is_connected() and guild.voice_client.channel.id == target_ch.id:
+                    break
+
+                try:
+                    await self.ensure_voice_connection()
+                    if guild.voice_client and guild.voice_client.is_connected():
+                        break
+                except Exception:
+                    pass
+                await asyncio.sleep(delay)
+                delay = min(delay * 1.5, 4.0)
+        finally:
+            self._reconnecting = False
+
+    async def on_voice_state_update(self, member, before, after):
+        """Si el bot es desconectado o movido a otro canal, lo reconecta/regresa a General de inmediato."""
+        if member.id != self.user.id:
+            return
+
+        target_ch = self.get_target_voice_channel()
+        if after.channel is None:
+            print("[Admin Bot Voz] 🚨 Desconexión detectada. Reconectando a General...", flush=True)
+            self.voice_client = None
+            if self.auto_reconnect_enabled:
+                asyncio.create_task(self.reconnect_forever())
+        elif target_ch and after.channel.id != target_ch.id:
+            print(f"[Admin Bot Voz] ⚠️ Movido a '{after.channel.name}'. Regresando a '{target_ch.name}'...", flush=True)
+            try:
+                if self.voice_client and self.voice_client.is_connected():
+                    await self.voice_client.move_to(target_ch)
+                else:
+                    await member.move_to(target_ch)
+            except Exception:
+                asyncio.create_task(self.ensure_voice_connection())
+
+    @tasks.loop(seconds=5)
+    async def voice_keeper_task(self):
+        """Vigilante cada 5s: Asegura presencia 100% permanente en General."""
+        try:
+            target_ch = self.get_target_voice_channel()
+            if not target_ch:
+                return
+
+            guild = target_ch.guild
+            vc = guild.voice_client
+
+            if not vc or not vc.is_connected():
+                await self.ensure_voice_connection()
+                return
+
+            if vc.channel.id != target_ch.id:
+                try:
+                    await vc.move_to(target_ch)
+                except Exception:
+                    pass
+
+            if not vc.is_playing():
+                try:
+                    vc.play(SilentAudioSource())
+                except Exception:
+                    pass
+        except Exception:
+            pass
 
     @tasks.loop(minutes=25)
     async def hourly_wallpaper_task(self):
@@ -356,6 +543,10 @@ class AdminBot(commands.Bot):
         print(f"🏠 Servidor: {config.GUILD_ID}", flush=True)
         print(f"👋 Canal de Bienvenidas: {self.welcome_channel_id}", flush=True)
         print("🖼️ Canal Wallpapers 4K: 1559842253352992840 (Auto-cada hora)", flush=True)
+        
+        target_ch = self.get_target_voice_channel()
+        ch_name = f"'{target_ch.name}' ({target_ch.id})" if target_ch else f"ID: {self.target_voice_channel_id}"
+        print(f"🎙️ Canal de Voz Objetivo: {ch_name} (24/7 Permanente)", flush=True)
         print("==================================================", flush=True)
 
         activity = discord.Streaming(
@@ -366,6 +557,9 @@ class AdminBot(commands.Bot):
 
         if not self.hourly_wallpaper_task.is_running():
             self.hourly_wallpaper_task.start()
+
+        # Conectar a voz General de inmediato
+        await self.ensure_voice_connection()
 
     def record_chat_message(self, message: discord.Message):
         """Registra los mensajes y fotos enviados en Discord para el Panel Web."""
@@ -1517,7 +1711,7 @@ def setup_admin_commands(bot: AdminBot):
             print(f"[Admin Bot Error] {error}", flush=True)
 
 def run_admin_bot():
-    """Función de arranque del bot administrador."""
+    """Función de arranque del bot administrador con voz 24/7 permanente."""
     if not config.ADMIN_BOT_TOKEN:
         print("❌ ERROR: No se encontró ADMIN_BOT_TOKEN en .env", flush=True)
         sys.exit(1)
@@ -1525,6 +1719,7 @@ def run_admin_bot():
     intents = discord.Intents.default()
     intents.guilds = True
     intents.messages = True
+    intents.voice_states = True
     
     if config.ENABLE_MEMBERS_INTENT:
         intents.members = True
@@ -1535,22 +1730,44 @@ def run_admin_bot():
     bot = AdminBot(intents=intents)
     setup_admin_commands(bot)
 
-    print("🚀 Iniciando Bot Administrador & Bienvenidas...", flush=True)
-    try:
-        bot.run(config.ADMIN_BOT_TOKEN, reconnect=True)
-    except discord.errors.PrivilegedIntentsRequired:
-        print("\n⚠️ AVISO PARA BOT ADMINISTRADOR:", flush=True)
-        print("Para que las bienvenidas y despedidas automáticas se detecten al instante,", flush=True)
-        print("debes activar 'Server Members Intent' en el Developer Portal:", flush=True)
-        print(f"👉 https://discord.com/developers/applications/{config.ADMIN_BOT_APP_ID}/bot", flush=True)
-        print("Iniciando con intents estándar (comandos manuales y slash activos)...", flush=True)
+    print("🚀 Iniciando Bot Administrador & Bienvenidas (Voz Permanente en General)...", flush=True)
 
-        fallback_intents = discord.Intents.default()
-        fallback_intents.guilds = True
-        fallback_intents.messages = True
-        fallback_bot = AdminBot(intents=fallback_intents)
-        setup_admin_commands(fallback_bot)
-        fallback_bot.run(config.ADMIN_BOT_TOKEN, reconnect=True)
+    while True:
+        try:
+            bot.run(config.ADMIN_BOT_TOKEN, reconnect=True)
+        except discord.errors.LoginFailure as e:
+            print("\n" + "="*60, flush=True)
+            print("❌ ERROR DE AUTENTICACIÓN - BOT ADMINISTRADOR (Token Inválido)", flush=True)
+            print(f"👉 Detalle: {e}", flush=True)
+            print("El ADMIN_BOT_TOKEN en tu archivo .env no es válido o fue reseteado en Discord Developer Portal.", flush=True)
+            print(f"👉 Ve a: https://discord.com/developers/applications/{config.ADMIN_BOT_APP_ID}/bot", flush=True)
+            print("Copia tu nuevo Token ('Reset Token') y pégalo en .env en ADMIN_BOT_TOKEN=...", flush=True)
+            print("="*60 + "\n", flush=True)
+            time.sleep(10)
+        except discord.errors.PrivilegedIntentsRequired:
+            print("\n⚠️ AVISO PARA BOT ADMINISTRADOR:", flush=True)
+            print("Para que las bienvenidas y despedidas automáticas se detecten al instante,", flush=True)
+            print("debes activar 'Server Members Intent' en el Developer Portal:", flush=True)
+            print(f"👉 https://discord.com/developers/applications/{config.ADMIN_BOT_APP_ID}/bot", flush=True)
+            print("Iniciando con intents estándar (comandos manuales, slash y voz activos)...", flush=True)
+
+            fallback_intents = discord.Intents.default()
+            fallback_intents.guilds = True
+            fallback_intents.messages = True
+            fallback_intents.voice_states = True
+            fallback_bot = AdminBot(intents=fallback_intents)
+            setup_admin_commands(fallback_bot)
+            try:
+                fallback_bot.run(config.ADMIN_BOT_TOKEN, reconnect=True)
+            except Exception as e_fb:
+                print(f"⚠️ Error en fallback admin bot: {e_fb}. Reintentando en 5s...", flush=True)
+                time.sleep(5)
+        except KeyboardInterrupt:
+            print("\nDetención manual solicitada para Bot Administrador.", flush=True)
+            break
+        except Exception as e:
+            print(f"⚠️ Caída en Bot Administrador: {e}. Reiniciando en 3 segundos...", flush=True)
+            time.sleep(3)
 
 if __name__ == "__main__":
     run_admin_bot()
